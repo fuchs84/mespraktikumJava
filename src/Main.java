@@ -1,7 +1,3 @@
-import MLP.MLP;
-import SelectData.NWData;
-import SelectData.Data;
-import ShowData.ConfusionMatrix;
 import Users.Matthias;
 import Users.Sebastian;
 
@@ -12,6 +8,8 @@ public class Main {
     private static Matthias matthias;
     private static Sebastian sebastian;
     public static void main(String[] args)  {
+        sebastian = new Sebastian();
+        matthias = new Matthias();
 
     }
 }
