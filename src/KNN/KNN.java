@@ -35,56 +35,6 @@ public class KNN {
 
     }
 
-
-    public static void KNNclassifier() {
-        KNN classifier = new KNN();
-        NWData daterino = new NWData();
-        data = daterino.readCSV("selectedDatapcaVec1000060000.csv");
-        classifier.datalabel = data.getLabel();
-        classifier.dataMatrix = data.getPattern();
-        datatest = daterino.readCSV("selectedDatapcaVec05000.csv");
-        double[][] testdata = datatest.getPattern();
-        double[] testllabel = datatest.getLabel();
-        validation = new Crossvalidation();
-        ArrayList<double[][]> patternlist = Crossvalidation.crossvalidate(classifier.dataMatrix,classifier.datalabel,10,10);
-        ArrayList<double[]> labellist = Crossvalidation.crossvalidatelabel(classifier.dataMatrix,classifier.datalabel,10,10);
-
-        for (int t = 1; t < 10; t++) {
-            double[][] patterni = patternlist.get(t);
-            double[] labeli = labellist.get(t);
-            classifier.train(patterni,labeli);
-        }
-        for (int c = 4; c < 10; c++) {
-            int[] prediction = classifier.classifyalldata( c, testdata, "Manhatten");
-            int mistakes = 0;
-            for (int i = 0; i < prediction.length ; i++) {
-                if((prediction[i] - (int) testllabel[i])!=0){
-                    mistakes += 1;
-                }
-
-            }
-            System.out.println( "      K="+c + "  Mistakes= "+mistakes);
-        }
-        classifier.optimizetrainset();
-        for (int c = 4; c < 10; c++) {
-            int[] prediction = classifier.classifyalldata( c, testdata, "Manhatten");
-            int mistakes = 0;
-            for (int i = 0; i < prediction.length ; i++) {
-                if((prediction[i] - (int) testllabel[i])!=0){
-                    mistakes += 1;
-                }
-
-            }
-            System.out.println( "      K="+c + "  Mistakesop= "+mistakes);
-        }
-
-
-
-
-    }
-
-
-
     //Klassifiziert set aus Trainingsdaten
     public int[] classifyalldata( int KNNS, double[][] testdata,String distancecalculation){
         int[] predictedlabel = new int[testdata.length];
@@ -126,8 +76,10 @@ public class KNN {
                 lengthminus +=1;
             }
         }
+        System.out.println(lengthminus);
         double[][] temppattern = new double[trainMatrix.length-lengthminus][trainMatrix[0].length];
         double [] templabel = new double[trainlabel.length-lengthminus];
+        System.out.println(temppattern.length);
         int runindex = 0;
         for (int j = 0; j < trainMatrix.length; j++) {
             int predicted = classify(7,trainMatrix[j],"Manhatten");
@@ -139,6 +91,7 @@ public class KNN {
                 runindex+=1;
             }
         }
+
         trainMatrix = new double[temppattern.length][temppattern[0].length];
         trainlabel = new double[templabel.length];
         trainMatrix = temppattern;
