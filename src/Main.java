@@ -10,7 +10,6 @@ public class Main {
     public static void main(String[] args)  {
         sebastian = new Sebastian();
         matthias = new Matthias();
-        sebastian.run();
-
+        //sebastian.run();
     }
 }
