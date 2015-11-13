@@ -11,10 +11,12 @@ public class Tree {
     private double[][] featureAttribute;
     private int featureSplit;
 
-    public Tree() {
-
-    }
-
+    /**
+     * Methode zum Trainieren des DTs
+     * @param patterns Train-Pattern zum trainieren des DTs
+     * @param labels Train-Labels zum trainieren des DTs
+     * @param featureSplit Teilt die Features in Bereiche ein
+     */
     public void train (double[][] patterns, double[] labels, int featureSplit) {
         if(patterns.length != labels.length) {
             return;
@@ -24,8 +26,17 @@ public class Tree {
         computeFeatureAttribute(patterns);
     }
 
+
+    private void learn() {
+
+    }
+
+    /**
+     * Methode teilt die einzelnen Features in Bereiche ein und speichert sie in featureAttribute ab.
+     * @param patterns Train-Patterns
+     */
     private void computeFeatureAttribute(double[][] patterns) {
-        featureAttribute = new double[patterns[0].length][featureSplit+1];
+        featureAttribute = new double[patterns[0].length][featureSplit-1];
         double max = Double.NEGATIVE_INFINITY;
         double min = Double.POSITIVE_INFINITY;
         double splitSize;
@@ -39,43 +50,54 @@ public class Tree {
                 }
             }
             splitSize = (max - min)/((double) featureSplit);
-            for(int j = 0; j <= featureSplit; j++) {
-                if (j == 0) {
-                    featureAttribute[i][j] = Double.NEGATIVE_INFINITY;
-                } else if(j == featureSplit) {
-                    featureAttribute[i][j] = Double.POSITIVE_INFINITY;
-                }
-                else {
-                    featureAttribute[i][j] = min + splitSize * j;
-                }
+            for(int j = 1; j < featureSplit; j++) {
+                featureAttribute[i][j-1] = min + splitSize * j;
             }
         }
     }
 
+    /**
+     * Methode trennt die Labels in SubLabels auf zum Berechnen des Information Gains
+     * @param patterns Train-Patterns zur Entscheidung der SubLevel Einteilung
+     * @param labels Train-Patterns zur Einteilung in SubLabels
+     * @param featureNumber Ausgewähltes Feature nachdem SubLabels getrennt wird.
+     * @return Sublabels
+     *
+     * Fehler Drinnen!!!!!!!!! FEATUREATTRIBUTE Initalisierung überprüfen!!!!!
+     *
+     */
     private double[][] computeSubLabels(double[][] patterns, double[] labels, int featureNumber) {
         double[][] subLabels = new double[featureSplit][];
-        double lowerBound, upperBound;
+        double upperBound;
         double[] selectedFeature = selectFeature(patterns, featureNumber);
         int count, index;
         for (int i = 0; i < featureSplit; i++) {
-            lowerBound = featureAttribute[featureNumber][i];
-            upperBound = featureAttribute[featureNumber][i+1];
-            count = countHitValue(selectedFeature, lowerBound, upperBound);
+            upperBound = featureAttribute[featureNumber][i];
+            count = countHitValue(selectedFeature, upperBound);
             subLabels[i] = new double[count];
             index = 0;
             for (int j = 0; j < selectedFeature.length; j++) {
-                if (lowerBound <= selectedFeature[j] && selectedFeature[j] < upperBound) {
+                if (selectedFeature[j] < upperBound) {
                     subLabels[i][index] = labels [j];
+                    index++;
                 }
             }
         }
         return subLabels;
     }
 
+    /**
+     *
+     * @param featureNumber
+     * @param value
+     * @param patterns
+     * @param labels
+     * @return
+     */
     private List<double[][]> splitData(int featureNumber, double value, double[][] patterns, double[] labels) {
         List<double[][]> splitData = new LinkedList<>();
         double [] selectedFeature = selectFeature(patterns, featureNumber);
-        int count = countHitValue(selectedFeature, Double.NEGATIVE_INFINITY, value);
+        int count = countHitValue(selectedFeature, value);
         double[][] leftPatterns = new double[count][];
         double [][] leftLabels = new double[count][1];
         double[][] rightPatterns = new double[selectedFeature.length-count][];
@@ -101,6 +123,12 @@ public class Tree {
         return splitData;
     }
 
+    /**
+     * Methode selektiert ein ausgewähltes Feature aus den Train-Patterns
+     * @param patterns Train-Patterns
+     * @param featureNumber Ausgewähltes Feature
+     * @return Selektiertes Feature aus den Train-Patterns
+     */
     private double [] selectFeature(double[][] patterns, int featureNumber) {
         double[] selectedFeature = new double[patterns.length];
         for(int i = 0; i < patterns.length; i++) {
@@ -109,6 +137,12 @@ public class Tree {
         return selectedFeature;
     }
 
+    /**
+     *
+     * @param labels
+     * @param subLabels
+     * @return
+     */
     private double[] computeInformationGain(double[] labels, double[][] subLabels) {
         double [] gain = new double [featureSplit];
         for (int i = 0; i < featureSplit; i++) {
@@ -124,6 +158,11 @@ public class Tree {
         return gain;
     }
 
+    /**
+     *
+     * @param labels
+     * @return
+     */
     private double computeEntropy(double[] labels) {
         int numberOfLabels = labels.length;
         int maxLabel = computeMaxLabel(labels);
@@ -136,6 +175,11 @@ public class Tree {
         return entropy;
     }
 
+    /**
+     *
+     * @param labels
+     * @return
+     */
     private int computeMaxLabel(double[] labels) {
         int maxLabel = Integer.MIN_VALUE;
         int numberOfLabels = labels.length;
@@ -147,6 +191,11 @@ public class Tree {
         return maxLabel;
     }
 
+    /**
+     *
+     * @param labels
+     * @return
+     */
     private int[] computeClassDistribution(double [] labels) {
         int numberOfLabels = labels.length;
         int maxLabel = computeMaxLabel(labels);
@@ -158,10 +207,16 @@ public class Tree {
         return distribution;
     }
 
-    private int countHitValue(double [] selectedFeature, double lowerBound, double upperBound) {
+    /**
+     *
+     * @param selectedFeature
+     * @param upperBound
+     * @return
+     */
+    private int countHitValue(double [] selectedFeature, double upperBound) {
         int count = 0;
         for (int i = 0; i < selectedFeature.length; i++) {
-            if (lowerBound <= selectedFeature[i] && selectedFeature[i] < upperBound) {
+            if (selectedFeature[i] < upperBound) {
                 count++;
             }
         }
