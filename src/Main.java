@@ -11,5 +11,6 @@ public class Main {
         sebastian = new Sebastian();
         matthias = new Matthias();
         //sebastian.run();
+        matthias.run();
     }
 }

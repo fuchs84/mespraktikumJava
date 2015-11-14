@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * Created by MatthiasFuchs on 13.11.15.
  */
-public class Tree {
+public class DecisionTree {
 
     private double[][] featureAttribute;
     private int featureSplit;
@@ -62,6 +62,7 @@ public class Tree {
                     }
                 }
             }
+
             node.setDecisionAttribute(indexFeatureMaxGain);
             node.setDecisionValue(featureAttribute[indexFeatureMaxGain][indexFeatureValueMaxGain]);
             List<double[][]> newData = splitData(indexFeatureMaxGain, indexFeatureValueMaxGain, patterns, labels);
@@ -191,10 +192,12 @@ public class Tree {
         for (int i = 0; i < featureSplit; i++) {
             gain[i] = computeEntropy(labels);
             for (int j = 0; j < featureSplit; j++) {
-                if(i == j) {
-                    gain[i] -= (subLabels[j].length/labels.length)*computeEntropy(subLabels[j]);
-                } else {
-                    gain[i] += (subLabels[j].length/labels.length)*computeEntropy(subLabels[j]);
+                if (subLabels[j].length > 0) {
+                    if (i == j) {
+                        gain[i] -= (subLabels[j].length / labels.length) * computeEntropy(subLabels[j]);
+                    } else {
+                        gain[i] += (subLabels[j].length / labels.length) * computeEntropy(subLabels[j]);
+                    }
                 }
             }
         }
@@ -224,11 +227,11 @@ public class Tree {
      * @return maximale Label in Labels/Sublabels
      */
     private int computeMaxLabel(double[] labels) {
-        int maxLabel = Integer.MIN_VALUE;
+        int maxLabel = 0;
         int numberOfLabels = labels.length;
         for (int i = 0; i < numberOfLabels; i++) {
             if (maxLabel < (int) labels[i]) {
-                maxLabel = (int) labels[i];
+                maxLabel = (int) (labels[i]);
             }
         }
         return maxLabel;
@@ -273,10 +276,41 @@ public class Tree {
      */
     private boolean isNodePure(double[] labels) {
         for (int i = 0; i < labels.length; i++) {
-            if (labels[0] !=labels[0]) {
+            if (labels[0] !=labels[i]) {
                 return false;
             }
         }
         return true;
     }
+
+    /**
+     * Getter-Methode für Root-Knoten
+     * @return Root Knoten
+     */
+    public Node getRoot() {
+        return root;
+    }
+
+    public double[] classify(double[][] patterns) {
+        double[] labels = new double[patterns.length];
+        for (int i = 0; i < patterns.length; i++) {
+            labels[i] = passTree(patterns[i]);
+        }
+        return labels;
+    }
+
+    public double passTree(double[] pattern) {
+        Node node = root;
+        double classified = Double.NEGATIVE_INFINITY;
+        while (node.getLeaf() == false) {
+            if (pattern[node.getDecisionAttribute()] < node.getDecisionValue()) {
+                node = node.left;
+            } else {
+                node = node.right;
+            }
+        }
+        classified = node.getClassLabel();
+        return classified;
+    }
+
 }
