@@ -7,15 +7,30 @@ public class Node {
     private int decisionAttribute = Integer.MIN_VALUE;
     private double decisionValue = Double.NEGATIVE_INFINITY;
     private boolean leaf = false;
+    private double classLabel = Double.NEGATIVE_INFINITY;
 
-    public Node previousNode = null;
+    public Node left;
+    public Node right;
+    public Node parent;
 
     public boolean getLeaf() {
         return leaf;
     }
 
+    public double getClassLabel() {
+        return classLabel;
+    }
+
+    public void setClassLabel(double classLabel) {
+        this.classLabel = classLabel;
+    }
+
     public void setLeaf(boolean leaf) {
         this.leaf = leaf;
+        if(leaf == true) {
+            right = null;
+            left = null;
+        }
     }
 
     public double getDecisionValue() {

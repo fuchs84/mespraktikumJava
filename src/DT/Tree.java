@@ -10,33 +10,79 @@ public class Tree {
 
     private double[][] featureAttribute;
     private int featureSplit;
+    private int deep;
+    private Node root;
 
     /**
-     * Methode zum Trainieren des DTs
-     * @param patterns Train-Pattern zum trainieren des DTs
-     * @param labels Train-Labels zum trainieren des DTs
-     * @param featureSplit Teilt die Features in Bereiche ein
+     * Methode legt einen neuen DT an und trainiert ihn mit den übergebenen Daten
+     * @param patterns Train-Patterns
+     * @param labels Train-Labels
+     * @param featureSplit Anzahl der Aufteilungen der einen Features
+     * @param deep Maximale Tiefe des Baums
      */
-    public void train (double[][] patterns, double[] labels, int featureSplit) {
-        if(patterns.length != labels.length) {
-            return;
-        }
-
+    public void train (double[][] patterns, double[] labels, int featureSplit, int deep) {
+        this.deep = deep;
         this.featureSplit = featureSplit;
         computeFeatureAttribute(patterns);
-    }
-
-
-    private void learn() {
+        root = build(patterns, labels, null);
 
     }
+
+    /**
+     * Methode erstellt einen neuen Konten wenn die maximale Tiefe noch nicht erreicht wurde oder das Label noch nicht pure ist,
+     * ansonsten erstellt die Methode ein Blatt
+     * @param patterns Train-Patterns
+     * @param labels Train-Labels
+     * @param parent Vorgängerkonten/Elternknoten
+     * @return neuen Knoten
+     */
+    public Node build (double[][] patterns, double[] labels, Node parent) {
+        Node node = new Node();
+        node.parent = parent;
+        if(isNodePure(labels) == true) {
+            node.setLeaf(true);
+            node.setClassLabel(labels[0]);
+            return null;
+        } else {
+            double[][] subLabels;
+            double[][] informationGain = new double[patterns[0].length][this.featureSplit];
+
+            for (int i = 0; i < patterns[0].length; i++) {
+                subLabels = computeSubLabels(patterns, labels, i);
+                informationGain[i] = computeInformationGain(labels, subLabels);
+            }
+            int indexFeatureMaxGain = Integer.MIN_VALUE, indexFeatureValueMaxGain = Integer.MIN_VALUE;
+            double maxGain = Double.NEGATIVE_INFINITY;
+            for (int i = 0; i < informationGain.length; i++) {
+                for (int j = 0; j < informationGain[0].length; j++) {
+                    if (maxGain < informationGain[i][j]) {
+                        maxGain = informationGain[i][j];
+                        indexFeatureMaxGain = i;
+                        indexFeatureValueMaxGain = j;
+                    }
+                }
+            }
+            node.setDecisionAttribute(indexFeatureMaxGain);
+            node.setDecisionValue(featureAttribute[indexFeatureMaxGain][indexFeatureValueMaxGain]);
+            List<double[][]> newData = splitData(indexFeatureMaxGain, indexFeatureValueMaxGain, patterns, labels);
+            double [][] leftPatterns = newData.get(0);
+            double [][] leftLabels = newData.get(1);
+            double [][] rightPatterns = newData.get(2);
+            double [][] rightLabels = newData.get(3);
+
+            node.left = build(leftPatterns, leftLabels[0], node);
+            node.right = build(rightPatterns, rightLabels[0], node);
+            return node;
+        }
+    }
+
 
     /**
      * Methode teilt die einzelnen Features in Bereiche ein und speichert sie in featureAttribute ab.
      * @param patterns Train-Patterns
      */
     private void computeFeatureAttribute(double[][] patterns) {
-        featureAttribute = new double[patterns[0].length][featureSplit-1];
+        featureAttribute = new double[patterns[0].length][featureSplit];
         double max = Double.NEGATIVE_INFINITY;
         double min = Double.POSITIVE_INFINITY;
         double splitSize;
@@ -50,8 +96,8 @@ public class Tree {
                 }
             }
             splitSize = (max - min)/((double) featureSplit);
-            for(int j = 1; j < featureSplit; j++) {
-                featureAttribute[i][j-1] = min + splitSize * j;
+            for(int j = 0; j < featureSplit; j++) {
+                featureAttribute[i][j] = min + splitSize * (j+1);
             }
         }
     }
@@ -60,11 +106,8 @@ public class Tree {
      * Methode trennt die Labels in SubLabels auf zum Berechnen des Information Gains
      * @param patterns Train-Patterns zur Entscheidung der SubLevel Einteilung
      * @param labels Train-Patterns zur Einteilung in SubLabels
-     * @param featureNumber Ausgewähltes Feature nachdem SubLabels getrennt wird.
+     * @param featureNumber Ausgewaehltes Feature nachdem SubLabels getrennt wird.
      * @return Sublabels
-     *
-     * Fehler Drinnen!!!!!!!!! FEATUREATTRIBUTE Initalisierung überprüfen!!!!!
-     *
      */
     private double[][] computeSubLabels(double[][] patterns, double[] labels, int featureNumber) {
         double[][] subLabels = new double[featureSplit][];
@@ -87,32 +130,32 @@ public class Tree {
     }
 
     /**
-     *
-     * @param featureNumber
-     * @param value
-     * @param patterns
-     * @param labels
-     * @return
+     * Methode teilt die Daten in zwei Bereiche auf (rechts/links vom Knoten)
+     * @param featureNumber Ausgewaeltes Feature, das die Aufteilung bestimmt
+     * @param value Featurewert, das die Aufteilungsgrenze definiert
+     * @param patterns Aufzuteilendes Patterns
+     * @param labels Aufzuteilendes Labels
+     * @return Liste mit rechten und linken Patterns/Labels
      */
     private List<double[][]> splitData(int featureNumber, double value, double[][] patterns, double[] labels) {
         List<double[][]> splitData = new LinkedList<>();
         double [] selectedFeature = selectFeature(patterns, featureNumber);
         int count = countHitValue(selectedFeature, value);
         double[][] leftPatterns = new double[count][];
-        double [][] leftLabels = new double[count][1];
+        double [][] leftLabels = new double[1][count];
         double[][] rightPatterns = new double[selectedFeature.length-count][];
-        double [][] rightLabels = new double[selectedFeature.length-count][1];
+        double [][] rightLabels = new double[1][selectedFeature.length-count];
 
         int countRight = 0, countLeft = 0;
 
         for (int i = 0; i < selectedFeature.length; i++) {
             if(selectedFeature[i] < value) {
                 leftPatterns[countLeft] = patterns[i];
-                leftLabels[countLeft][0] = labels[i];
+                leftLabels[0][countLeft] = labels[i];
                 countLeft++;
             } else {
                 rightPatterns[countRight] = patterns[i];
-                rightLabels[countRight][0] = labels[i];
+                rightLabels[0][countRight] = labels[i];
                 countRight++;
             }
         }
@@ -124,7 +167,7 @@ public class Tree {
     }
 
     /**
-     * Methode selektiert ein ausgewähltes Feature aus den Train-Patterns
+     * Methode selektiert ein ausgewaehltes Feature aus den Train-Patterns
      * @param patterns Train-Patterns
      * @param featureNumber Ausgewähltes Feature
      * @return Selektiertes Feature aus den Train-Patterns
@@ -138,10 +181,10 @@ public class Tree {
     }
 
     /**
-     *
-     * @param labels
-     * @param subLabels
-     * @return
+     * Methode zur Berechnung des Informationsgains
+     * @param labels Labels für die allgemeine Entropy
+     * @param subLabels Sublabels auf denen der Informationsgain-Zunahme/Abnahme berechnet wird.
+     * @return double-Array mit den Informationsgain zurueckgeliefert wird
      */
     private double[] computeInformationGain(double[] labels, double[][] subLabels) {
         double [] gain = new double [featureSplit];
@@ -159,9 +202,9 @@ public class Tree {
     }
 
     /**
-     *
-     * @param labels
-     * @return
+     * Methode zur Berechnung der Entropy
+     * @param labels Labels/Sublabels auf den die Entropy berechnet werden soll
+     * @return gibt den Entropywert zurueck
      */
     private double computeEntropy(double[] labels) {
         int numberOfLabels = labels.length;
@@ -176,9 +219,9 @@ public class Tree {
     }
 
     /**
-     *
-     * @param labels
-     * @return
+     * Methode sucht das maximale Label, dass in Labels/Sublabels vorkomm
+     * @param labels Labels/Sublabels auf den das maximale Label gesucht wird
+     * @return maximale Label in Labels/Sublabels
      */
     private int computeMaxLabel(double[] labels) {
         int maxLabel = Integer.MIN_VALUE;
@@ -192,9 +235,9 @@ public class Tree {
     }
 
     /**
-     *
-     * @param labels
-     * @return
+     * Methode berechnet die Verteilung der Labels
+     * @param labels Label/Sublabel, auf der die Verteilung berechnet wird.
+     * @return int-Array mit der Labelverteilung
      */
     private int[] computeClassDistribution(double [] labels) {
         int numberOfLabels = labels.length;
@@ -208,10 +251,10 @@ public class Tree {
     }
 
     /**
-     *
-     * @param selectedFeature
-     * @param upperBound
-     * @return
+     * Methode zaehlt die Sampels, bis zur oberen Grenze, die den Wert erfuellen
+     * @param selectedFeature ausgewaeltes Feature
+     * @param upperBound obere Grenze
+     * @return Anzahl der Sampels, die die Bedingung erfuellen
      */
     private int countHitValue(double [] selectedFeature, double upperBound) {
         int count = 0;
@@ -221,5 +264,19 @@ public class Tree {
             }
         }
         return count;
+    }
+
+    /**
+     * Methode ueberprueft, ob ein Konten/Subset pure ist
+     * @param labels Train-Label-Subset eines Knotens
+     * @return true, wenn der Knoten/Subset pure ist, andernfalls false
+     */
+    private boolean isNodePure(double[] labels) {
+        for (int i = 0; i < labels.length; i++) {
+            if (labels[0] !=labels[0]) {
+                return false;
+            }
+        }
+        return true;
     }
 }
