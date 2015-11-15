@@ -29,6 +29,7 @@ public class Matthias {
 
         decisionTree = new DecisionTree();
         decisionTree.train(trainPattern, trainLabel, 10, 10);
+        System.out.println(decisionTree.passTree(testPattern[0]));
 
 
 
