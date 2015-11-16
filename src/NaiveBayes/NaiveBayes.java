@@ -82,8 +82,24 @@ public class NaiveBayes {
 
                 }
             }
+            normalize();
 
         }
+    public void normalize(){
+        for (int i = 0; i < featureprobability.length ; i++) {
+            double sumvar=0;
+            double summean=0;
+            for (int j = 2; j <featureprobability[i].length ; j++) {
+                sumvar+=featureprobability[i][j][0];
+                summean+=featureprobability[i][j][1];
+            }
+
+            for (int j = 2; j <featureprobability[0].length ; j++) {
+                featureprobability[i][j][0]=featureprobability[i][j][0]/sumvar;
+                featureprobability[i][j][1]=featureprobability[i][j][1]/summean;
+            }
+        }
+    }
 
     public double[] classifyalldata(double[][] testdata ){
         double[] predictedlabel = new double[testdata.length];
@@ -103,26 +119,27 @@ public class NaiveBayes {
             for (int j = 0; j <testdatapattern.length ; j++) {
 
                 //gausswrskt
-                featureinclass[j]=(1/Math.sqrt(2*Math.PI*Math.pow(featureprobability[i][j+2][0],2)))*
+
+                featureinclass[j]=((1/Math.sqrt(2*Math.PI*Math.pow(featureprobability[i][j+2][0],2)))*
                                 Math.pow(Math.E,
                                     -(Math.pow(testdatapattern[j]-featureprobability[i][j+2][1],2)/
-                                    (2*Math.pow(featureprobability[i][j+2][0],2))));
+                                    (2*Math.pow(featureprobability[i][j+2][0],2)))));
             }
             double entireprob = featureprobability[i][1][0];
             for (int j = 0; j < testdatapattern.length; j++) {
                 if (featureinclass[j]!=0.0) {
                     entireprob *= featureinclass[j];
-                }
+               }
             }
             classprobability[i]=entireprob;
+            System.out.println(entireprob+" "+i);
         }
         double extremum = 0;
         for (int t = 0; t < 1; t++) {
             for (int z = 0; z < classprobability.length; z++) {
-                System.out.println("wrskt"+ classprobability[z]+"        ");
 
                 for (int w = z; w < classprobability.length; w++) {
-                    if (classprobability[z] > classprobability[w]) {
+                    if (classprobability[z] < classprobability[w]) {
                         z = w - 1;
                         break;
                     } else if (w == classprobability.length - 1) {

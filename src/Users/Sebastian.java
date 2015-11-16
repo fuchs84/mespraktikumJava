@@ -20,7 +20,7 @@ public class Sebastian {
         Data data;
         Data datatest;
         Crossvalidation validation;
-        data = daterino.readCSV("/Users/Sebastian/IdeaProjects/MES_Praktikum/selectedData05000.csv");
+        data = daterino.readCSV("/Users/Sebastian/IdeaProjects/MES_Praktikum/selectedDataVec.csv");
         classifier.datalabel = data.getLabel();
         classifier.dataMatrix = data.getPattern();
         datatest = daterino.readCSV("/Users/Sebastian/IdeaProjects/MES_Praktikum/selectedDatapca500010000.csv");
@@ -36,10 +36,7 @@ public class Sebastian {
         Bayes.train();
 
         double[] classifiedlabel = Bayes.classifyalldata(patternlist.get(9));
-        for (int i = 0; i <classifiedlabel.length ; i++) {
-            System.out.println((int)classifiedlabel[i]+"     "+(int)labellist.get(9)[i]+"     ");
 
-        }
         ConfusionMatrix mat = new ConfusionMatrix();
         mat.computeConfusionMatrix(classifiedlabel,labellist.get(9));
 
