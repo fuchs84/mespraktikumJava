@@ -120,13 +120,18 @@ public class NaiveBayes {
 
                 //gausswrskt
 
-                featureinclass[j]=((1/Math.sqrt(2*Math.PI*Math.pow(featureprobability[i][j+2][0],2)))*
+                double proba =((1/Math.sqrt(2*Math.PI*Math.pow(featureprobability[i][j+2][0],2)))*
                                 Math.pow(Math.E,
                                     -(Math.pow(testdatapattern[j]-featureprobability[i][j+2][1],2)/
                                     (2*Math.pow(featureprobability[i][j+2][0],2)))));
+
+                if (proba!=0.0) {
+                    featureinclass[j] = Math.abs(Math.log(Math.abs(proba)));
+                }
             }
             double entireprob = featureprobability[i][1][0];
             for (int j = 0; j < testdatapattern.length; j++) {
+                System.out.println("        "+featureinclass[j]);
                 if (featureinclass[j]!=0.0) {
                     entireprob *= featureinclass[j];
                }

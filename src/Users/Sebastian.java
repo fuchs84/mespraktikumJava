@@ -20,7 +20,7 @@ public class Sebastian {
         Data data;
         Data datatest;
         Crossvalidation validation;
-        data = daterino.readCSV("/Users/Sebastian/IdeaProjects/MES_Praktikum/selectedDataVec.csv");
+        data = daterino.readCSV("/Users/Sebastian/IdeaProjects/MES_Praktikum/selectedDatabayes.csv");
         classifier.datalabel = data.getLabel();
         classifier.dataMatrix = data.getPattern();
         datatest = daterino.readCSV("/Users/Sebastian/IdeaProjects/MES_Praktikum/selectedDatapca500010000.csv");
@@ -29,7 +29,7 @@ public class Sebastian {
         validation = new Crossvalidation();
         ArrayList<double[][]> patternlist = Crossvalidation.crossvalidate(classifier.dataMatrix,classifier.datalabel,10,10);
         ArrayList<double[]> labellist = Crossvalidation.crossvalidatelabel(classifier.dataMatrix,classifier.datalabel,10,10);
-        for (int i = 0; i < 8 ; i++) {
+        for (int i = 0; i < 6 ; i++) {
             Bayes.addTrainData(patternlist.get(i),labellist.get(i));
         }
 
