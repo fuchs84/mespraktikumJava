@@ -23,6 +23,12 @@ public class MLP {
 
     private List<Double> desiredOutputDistribution = new LinkedList<Double>();
 
+    /**
+     *
+     * @param nInput Anzahl der Inputs
+     * @param nOutput Anzahl der Outputs
+     * @param nHidden Anzahl der Zwischenschichten (als Array)
+     */
     public MLP(int nInput, int nOutput, int[] nHidden) {
         this.nInput = nInput;
         this.nOutput = nOutput;
@@ -41,6 +47,9 @@ public class MLP {
         initWeights();
     }
 
+    /**
+     * Methode initialisiert die Gewichte für die Verbindungen
+     */
     private void initWeights(){
         for (int i = 0; i <= hiddenLayer; i++) {
             double[][] weightMatrix;
@@ -60,6 +69,9 @@ public class MLP {
         }
     }
 
+    /**
+     * Methode gibt die Gewichte aus
+     */
     public void printWeights() {
         for (int i = 0; i <= hiddenLayer; i++) {
             double [][] weightMatrix = weights.get(i);
@@ -74,6 +86,9 @@ public class MLP {
         }
     }
 
+    /**
+     * Methode gibt die Werte der Schichten aus
+     */
     public void printLayers() {
         System.out.println("Inputlayer: ");
         for (int i=0; i < input.length; i++) {
@@ -94,6 +109,9 @@ public class MLP {
         }
     }
 
+    /**
+     * Methode berechnet den Gesamtfehler
+     */
     private void calculateEntireError() {
         for(int i = 0; i < actualOutput.length; i++) {
             for(int j = 0; j < actualOutput[0].length; j++) {
@@ -102,6 +120,13 @@ public class MLP {
         }
     }
 
+    /**
+     * Methode trainiert das Netzwerk
+     * @param pattern Train-Patterns
+     * @param label Train-Labels
+     * @param learningRate Lernrate (zwischen 0.0 und 1.0) legt die Lernintensität fest
+     * @param maxIteration Ist die Maximale Anzahl von Wiederholungen auf den Train-Daten
+     */
     public void train(double[][] pattern, double[][] label, double learningRate, long maxIteration) {
         calculateDistribution(label);
         double previousEntireError = Double.POSITIVE_INFINITY;
@@ -132,6 +157,11 @@ public class MLP {
 
     }
 
+    /**
+     * Methode klassifiziert die übergebenen Patterns
+     * @param pattern Patterns die klassifiziert werden.
+     * @return gibt die Labelklassen zurück
+     */
     public double[][] classify(double[][] pattern) {
         double [][] classified = new double[pattern.length][nOutput];
 
@@ -141,6 +171,11 @@ public class MLP {
         return classified;
     }
 
+    /**
+     * Methode gibt die Zahl des Ausgangsperzeptrons mit dem hoechsten Wert zurück
+     * @param classified Ausgangschicht
+     * @return Perzeptron mit dem hoechsten Wert
+     */
     public int winner(double[] classified) {
         double max = Double.NEGATIVE_INFINITY;
         int index = 0;
@@ -153,7 +188,11 @@ public class MLP {
         return index;
     }
 
-
+    /**
+     * Methode durchlaeuft das Netzwerk und berechnet die Werte der Ausgabeschicht
+     * @param trainInput Eingabeschicht
+     * @return Ausgabeschicht
+     */
     public double[] passNetwork(double[] trainInput) {
 
         input[0] = 1.0;
@@ -205,6 +244,12 @@ public class MLP {
         return output;
     }
 
+    /**
+     * Methode für die Aktivierungsfunktion für die Einzelnen Perzeptronen
+     * @param function ausgewaehlte Funktion
+     * @param value zu berechnender Wert
+     * @return Ergebnis der Berechnung
+     */
     private double activationFunction(String function, double value) {
         double solution = 0.0;
         if(function.equals("logistic")) {
@@ -221,6 +266,10 @@ public class MLP {
         return solution;
     }
 
+    /**
+     * Methode berechnet die Verteilung der Labels (zur Gewichtung beim Trainieren)
+     * @param desiredOutput Train-Labels
+     */
     private void calculateDistribution(double [][] desiredOutput) {
         double temp = 0.0;
 
@@ -246,6 +295,11 @@ public class MLP {
     }
 
 
+    /**
+     * Methode führt die BackPropagation durch und passt die Gewichte an
+     * @param desiredOutput gewünschter Ausgangswert
+     * @param learningRate Lernrate
+     */
     private void backPropagation(double[] desiredOutput, double learningRate) {
 
         double distributionFactor = 0.0;

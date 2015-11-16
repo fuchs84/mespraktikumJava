@@ -28,11 +28,13 @@ public class Matthias {
         double[] testLabel = data.testLabel;
 
         decisionTree = new DecisionTree();
-        decisionTree.train(trainPattern, trainLabel, 10, 10);
-        System.out.println(decisionTree.passTree(testPattern[0]));
+        decisionTree.train(trainPattern, trainLabel, 10, 100);
 
+        confusionMatrix = new ConfusionMatrix();
 
+        double[] classify = decisionTree.classify(testPattern);
 
+        confusionMatrix.computeConfusionMatrix(classify, testLabel);
 
 //        int nInput = pattern[0].length;
 //        int nOutput = label[0].length;
