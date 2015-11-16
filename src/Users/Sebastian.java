@@ -1,9 +1,12 @@
 package Users;
 import KNN.KNN;
 
+import NaiveBayes.NaiveBayes;
 import SelectData.Crossvalidation;
 import SelectData.NWData;
 import SelectData.Data;
+import ShowData.ConfusionMatrix;
+
 import java.util.ArrayList;
 
 /**
@@ -11,38 +14,34 @@ import java.util.ArrayList;
  */
 public class Sebastian {
     public void run() {
+        NaiveBayes Bayes = new NaiveBayes();
         KNN classifier = new KNN();
         NWData daterino = new NWData();
         Data data;
         Data datatest;
         Crossvalidation validation;
-        data = daterino.readCSV("/Users/Sebastian/IdeaProjects/MES_Praktikum/selectedDatapcaVec1000060000.csv");
+        data = daterino.readCSV("/Users/Sebastian/IdeaProjects/MES_Praktikum/selectedData05000.csv");
         classifier.datalabel = data.getLabel();
         classifier.dataMatrix = data.getPattern();
-        datatest = daterino.readCSV("/Users/Sebastian/IdeaProjects/MES_Praktikum/selectedDatapcaVec05000.csv");
+        datatest = daterino.readCSV("/Users/Sebastian/IdeaProjects/MES_Praktikum/selectedDatapca500010000.csv");
         double[][] testdata = datatest.getPattern();
         double[] testllabel = datatest.getLabel();
         validation = new Crossvalidation();
         ArrayList<double[][]> patternlist = Crossvalidation.crossvalidate(classifier.dataMatrix,classifier.datalabel,10,10);
         ArrayList<double[]> labellist = Crossvalidation.crossvalidatelabel(classifier.dataMatrix,classifier.datalabel,10,10);
-
-        for (int t = 1; t < 10; t++) {
-            double[][] patterni = patternlist.get(t);
-            double[] labeli = labellist.get(t);
-            classifier.train(patterni,labeli);
+        for (int i = 0; i < 8 ; i++) {
+            Bayes.addTrainData(patternlist.get(i),labellist.get(i));
         }
 
-        for (int c = 4; c < 10; c++) {
-            int[] prediction = classifier.classifyalldata( c, testdata, "Manhatten");
-            int mistakes = 0;
-            for (int i = 0; i < prediction.length ; i++) {
-                if((prediction[i] - (int) testllabel[i])!=0){
-                    mistakes += 1;
-                }
+        Bayes.train();
 
-            }
-            System.out.println( "      K="+c + "  Mistakes= "+mistakes);
+        double[] classifiedlabel = Bayes.classifyalldata(patternlist.get(9));
+        for (int i = 0; i <classifiedlabel.length ; i++) {
+            System.out.println((int)classifiedlabel[i]+"     "+(int)labellist.get(9)[i]+"     ");
+
         }
+        ConfusionMatrix mat = new ConfusionMatrix();
+        mat.computeConfusionMatrix(classifiedlabel,labellist.get(9));
 
     }
 

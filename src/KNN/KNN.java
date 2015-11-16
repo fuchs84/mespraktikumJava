@@ -12,21 +12,15 @@ import java.util.ArrayList;
 
 
 public class KNN {
-    private static NWData NWData;
-    private static Data data;
-    private static Data datatest;
-    public static Crossvalidation validation;
-    public static Crossvalidation crnvalidation;
+
 
 
     public double[][] trainMatrix;
     public double[] trainlabel;
 
-
     public double[][] dataMatrix;
     public double[] datalabel;
-    public double[][] testdata;
-    public double[] testlabel;
+
 
 
     public KNN() {
