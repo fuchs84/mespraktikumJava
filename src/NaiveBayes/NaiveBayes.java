@@ -125,14 +125,14 @@ public class NaiveBayes {
                                     -(Math.pow(testdatapattern[j]-featureprobability[i][j+2][1],2)/
                                     (2*Math.pow(featureprobability[i][j+2][0],2)))));
 
-                if (proba!=0.0) {
-                    featureinclass[j] = Math.abs(Math.log(Math.abs(proba)));
+                if (proba!=0.0&&proba>0) {
+                    featureinclass[j] = Math.abs(Math.log10(proba));
                 }
             }
             double entireprob = featureprobability[i][1][0];
             for (int j = 0; j < testdatapattern.length; j++) {
                 System.out.println("        "+featureinclass[j]);
-                if (featureinclass[j]!=0.0) {
+                if (featureinclass[j]!=0.0&&featureinclass[j]>0) {
                     entireprob *= featureinclass[j];
                }
             }
