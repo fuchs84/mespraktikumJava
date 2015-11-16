@@ -43,4 +43,21 @@ public class ConfusionMatrix {
             System.out.println();
         }
     }
+
+    public void computeTrueFalse(double[] output, double[] desiredOutput) {
+        if (output.length != desiredOutput.length) {
+            System.out.println("Output und desiredOutput passen nicht zusammen!");
+            return;
+        }
+        int trueClassified = 0, falseClassified = 0;
+        for (int i = 0; i < output.length; i++) {
+            if(output[i] == desiredOutput[i]) {
+                trueClassified++;
+            } else {
+                falseClassified++;
+            }
+        }
+        System.out.println("Richtig: " + trueClassified);
+        System.out.println("Falsch: " + falseClassified);
+    }
 }
