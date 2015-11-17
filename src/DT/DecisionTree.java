@@ -1,5 +1,7 @@
 package DT;
 
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -12,6 +14,7 @@ public class DecisionTree {
     private Node root;
     private List<Integer> usedFeature = new LinkedList<>();
     private List<Node> leafs = new LinkedList<>();
+    private double[][] quantifyValues;
     /**
      * Methode legt einen neuen DT an und trainiert ihn mit den übergebenen Daten
      * @param patterns Train-Patterns
@@ -84,7 +87,6 @@ public class DecisionTree {
 
             double minEntropy = Double.POSITIVE_INFINITY;
             int featureIndex = Integer.MIN_VALUE, valueIndex = Integer.MIN_VALUE;
-
             for (int i = 0; i < entropyReduction.length; i++) {
                 for (int j = 0; j < entropyReduction[0].length; j++) {
                     if(entropyReduction[i][j] < minEntropy) {
@@ -157,6 +159,63 @@ public class DecisionTree {
         return featureAttribute;
     }
 
+    private double[][] sortAndMerge(double[] selectedFeature, double[] label) {
+        double [][] merge = new double[selectedFeature.length][2];
+        for (int i = 0; i < selectedFeature.length; i++) {
+            merge[i][0] = selectedFeature[i];
+            merge[i][1] = label[i];
+        }
+
+        Arrays.sort(merge, new Comparator<double[]>() {
+            public int compare(double[] double1, double[] double2) {
+                Double numOfKeys1 = double1[0];
+                Double numOfKeys2 = double2[0];
+                return numOfKeys1.compareTo(numOfKeys2);
+            }
+        });
+        return merge;
+    }
+
+    public void quantifyData(double[][] patterns) {
+        quantifyValues = new double[patterns[0].length][featureSplit+1];
+        int boundary = patterns.length/featureSplit;
+        double[] selectedFeature;
+        for (int i = 0; i < patterns[0].length; i++) {
+            selectedFeature = selectFeature(patterns, i);
+            Arrays.sort(selectedFeature);
+            for (int j = 0; j <= featureSplit; j++) {
+                if (j== featureSplit) {
+                    quantifyValues[i][j] = selectedFeature[patterns.length-1];
+                }
+                else {
+                    quantifyValues[i][j] = selectedFeature[j*boundary];
+                }
+            }
+        }
+    }
+
+    private double[][] computeSubLabels(double[][] merge, int featureNumber) {
+        double[][] subLabels = new double[featureSplit][];
+        double upperBound, lowerBound;
+        double[] selectedFeature;
+        int count, index;
+        for (int i = 0; i < featureSplit; i++) {
+            upperBound = quantifyValues[featureNumber][i];
+            lowerBound = quantifyValues[featureNumber][i+1];
+            selectedFeature = selectFeature(merge, 0);
+            count = countHitValue(selectedFeature, upperBound);
+            subLabels[i] = new double[count];
+            index = 0;
+            for (int j = 0; j < selectedFeature.length; j++) {
+                if (selectedFeature[j] <= upperBound) {
+                    subLabels[i][index] = merge[j][0];
+                    index++;
+                }
+            }
+        }
+        return subLabels;
+    }
+
     /**
      * Methode trennt die Labels in SubLabels auf zum Berechnen des Information Gains
      * @param patterns Train-Patterns zur Entscheidung der SubLevel Einteilung
@@ -176,7 +235,7 @@ public class DecisionTree {
             subLabels[i] = new double[count];
             index = 0;
             for (int j = 0; j < selectedFeature.length; j++) {
-                if (selectedFeature[j] < upperBound) {
+                if (selectedFeature[j] <= upperBound) {
                     subLabels[i][index] = labels [j];
                     index++;
                 }
@@ -202,10 +261,11 @@ public class DecisionTree {
         double[][] rightPatterns = new double[selectedFeature.length-count][];
         double [][] rightLabels = new double[1][selectedFeature.length-count];
 
+
         int countRight = 0, countLeft = 0;
 
         for (int i = 0; i < selectedFeature.length; i++) {
-            if(selectedFeature[i] < value) {
+            if(selectedFeature[i] <= value) {
                 leftPatterns[countLeft] = patterns[i];
                 leftLabels[0][countLeft] = labels[i];
                 countLeft++;
@@ -395,7 +455,7 @@ public class DecisionTree {
         Node node = root;
         double classified;
         while (node.getLeaf() == false) {
-            if (pattern[node.getDecisionAttribute()] < node.getDecisionValueUpperBound()) {
+            if (pattern[node.getDecisionAttribute()] <= node.getDecisionValueUpperBound()) {
                 node = node.left;
             } else {
                 node = node.right;

@@ -9,7 +9,8 @@ public class Node {
      * Attribute des Kontens
      */
     private int decisionAttribute = Integer.MIN_VALUE;
-    private double decisionValueUpperBound = Double.NEGATIVE_INFINITY;
+    private double decisionValueUpperBound;
+    private double decisionValueLowerBound;
     private boolean leaf = false;
     private double classLabel = Double.NEGATIVE_INFINITY;
 
@@ -40,6 +41,12 @@ public class Node {
     }
     public void setDecisionValueUpperBound(double decisionValueUpperBound) {
         this.decisionValueUpperBound = decisionValueUpperBound;
+    }
+    public double getDecisionValueLowerBound() {
+        return decisionValueLowerBound;
+    }
+    public void setDecisionValueLowerBound(double decisionValueLowerBound) {
+        this.decisionValueLowerBound = decisionValueLowerBound;
     }
     public int getDecisionAttribute() {
         return decisionAttribute;
