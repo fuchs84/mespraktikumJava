@@ -11,6 +11,7 @@ public class Node {
     private int decisionAttribute = Integer.MIN_VALUE;
     private double decisionValueUpperBound;
     private double decisionValueLowerBound;
+    private double[] decisionValues;
     private boolean leaf = false;
     private double classLabel = Double.NEGATIVE_INFINITY;
 
@@ -19,6 +20,7 @@ public class Node {
      */
     public Node left;
     public Node right;
+    public Node [] children;
     public Node parent;
 
     /**
@@ -53,5 +55,12 @@ public class Node {
     }
     public void setDecisionAttribute(int decisionAttribute) {
         this.decisionAttribute = decisionAttribute;
+    }
+
+    public double[] getDecisionValues() {
+        return decisionValues;
+    }
+    public void setDecisionValues(double[] decisionValues) {
+        this.decisionValues = decisionValues;
     }
 }
