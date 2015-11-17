@@ -159,6 +159,20 @@ public class DecisionTree {
         return featureAttribute;
     }
 
+    private double[][] merge(double[][] patterns, double[] labels) {
+        double[][] merge = new double[patterns.length][patterns[0].length +1];
+        for (int i = 0; i < merge.length; i++) {
+            for (int j = 0; j < merge[0].length; j++) {
+                if (j == patterns[0].length) {
+                    merge[i][j] = labels[i];
+                } else {
+                    merge[i][j] = patterns[i][j];
+                }
+            }
+        }
+        return merge;
+    }
+
     private double[][] sortAndMerge(double[] selectedFeature, double[] label) {
         double [][] merge = new double[selectedFeature.length][2];
         for (int i = 0; i < selectedFeature.length; i++) {
@@ -203,7 +217,7 @@ public class DecisionTree {
             upperBound = quantifyValues[featureNumber][i];
             lowerBound = quantifyValues[featureNumber][i+1];
             selectedFeature = selectFeature(merge, 0);
-            count = countHitValue(selectedFeature, upperBound);
+            count = countHitValue(selectedFeature,lowerBound, upperBound);
             subLabels[i] = new double[count];
             index = 0;
             for (int j = 0; j < selectedFeature.length; j++) {
@@ -215,6 +229,57 @@ public class DecisionTree {
         }
         return subLabels;
     }
+
+    private double computeInformationGain(double[][] merge, int featureNumber) {
+        int numberOfLabels = merge.length;
+        double[][] subLabels;
+
+        double probability;
+        double [] labels = selectFeature(merge, 1);
+        double gain = computeEntropy(labels, numberOfLabels);
+        subLabels = computeSubLabels(merge, featureNumber);
+
+        for (int j = 0; j < featureSplit; j++) {
+            probability = ((double)subLabels[j].length)/((double)labels.length);
+            gain -= (probability) * computeEntropy(subLabels[j], numberOfLabels);
+        }
+        return gain;
+    }
+
+//    private List<double[][]> splitData(int featureNumber, double[][] patterns, double[] labels) {
+//        List<double[][]> splitData = new LinkedList<>();
+//        double [] selectedFeature = selectFeature(patterns, featureNumber);
+//        int count = countHitValue(selectedFeature, upperBound, lowerBound);
+//        for(int i = 0; i < featureSplit; i++) {
+//
+//        }
+//
+//        double[][] leftPatterns = new double[count][];
+//        double [][] leftLabels = new double[1][count];
+//        double[][] rightPatterns = new double[selectedFeature.length-count][];
+//        double [][] rightLabels = new double[1][selectedFeature.length-count];
+//
+//
+//        int countRight = 0, countLeft = 0;
+//
+//        for (int i = 0; i < selectedFeature.length; i++) {
+//            if(selectedFeature[i] <= value) {
+//                leftPatterns[countLeft] = patterns[i];
+//                leftLabels[0][countLeft] = labels[i];
+//                countLeft++;
+//            } else {
+//                rightPatterns[countRight] = patterns[i];
+//                rightLabels[0][countRight] = labels[i];
+//                countRight++;
+//            }
+//        }
+//
+//        splitData.add(leftPatterns);
+//        splitData.add(leftLabels);
+//        splitData.add(rightPatterns);
+//        splitData.add(rightLabels);
+//        return splitData;
+//    }
 
     /**
      * Methode trennt die Labels in SubLabels auf zum Berechnen des Information Gains
@@ -231,7 +296,7 @@ public class DecisionTree {
         int count, index;
         for (int i = 0; i < featureSplit-1; i++) {
             upperBound = featureAttribute[featureNumber][i];
-            count = countHitValue(selectedFeature, upperBound);
+            count = countHitValue(selectedFeature, Double.NEGATIVE_INFINITY, upperBound);
             subLabels[i] = new double[count];
             index = 0;
             for (int j = 0; j < selectedFeature.length; j++) {
@@ -255,7 +320,7 @@ public class DecisionTree {
     private List<double[][]> splitData(int featureNumber, double value, double[][] patterns, double[] labels) {
         List<double[][]> splitData = new LinkedList<>();
         double [] selectedFeature = selectFeature(patterns, featureNumber);
-        int count = countHitValue(selectedFeature, value);
+        int count = countHitValue(selectedFeature, Double.NEGATIVE_INFINITY, value);
         double[][] leftPatterns = new double[count][];
         double [][] leftLabels = new double[1][count];
         double[][] rightPatterns = new double[selectedFeature.length-count][];
@@ -299,26 +364,7 @@ public class DecisionTree {
 
 
 
-    private double[] computeInformationGain(double[][] patterns, double[] labels, double[][] featureAttribute) {
-        int numberOfLabels = labels.length;
-        double[][] subLabels;
-        double [] gain = new double [featureSplit];
-        double probability = 0.0;
-        for (int i = 0; i < featureSplit -1; i++) {
-            subLabels = computeSubLabels(patterns, labels, i, featureAttribute);
-            gain[i] = computeEntropy(labels, numberOfLabels);
-            for (int j = 0; j < featureSplit-1; j++) {
-                probability = ((double)subLabels[j].length)/((double)labels.length);
-                System.out.println("Probability: " + probability);
-                if (i == j) {
-                    gain[i] -= (probability) * computeEntropy(subLabels[j], numberOfLabels);
-                } else {
-                    gain[i] += (probability) * computeEntropy(subLabels[j], numberOfLabels);
-                }
-            }
-        }
-        return gain;
-    }
+
 
     /**
      * Methode berechnet die Entropy für die einzelnen Features
@@ -401,10 +447,10 @@ public class DecisionTree {
      * @param upperBound obere Grenze
      * @return Anzahl der Sampels, die die Bedingung erfuellen
      */
-    private int countHitValue(double [] selectedFeature, double upperBound) {
+    private int countHitValue(double [] selectedFeature, double lowerBound, double upperBound) {
         int count = 0;
         for (int i = 0; i < selectedFeature.length; i++) {
-            if (selectedFeature[i] <= upperBound) {
+            if (lowerBound < selectedFeature[i] && selectedFeature[i] <= upperBound) {
                 count++;
             }
         }
