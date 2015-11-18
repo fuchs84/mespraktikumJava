@@ -6,15 +6,33 @@ import java.util.*;
  * Created by Sebastian on 13.11.2015.
  */
 public class NaiveBayes {
+    /**
+     * Trainmatrix: Die Matrix mit der die Daten trainiert werden
+     * trainlabel: die zur Matrix zugehörigen Label
+     * featureprobability: Matrix der Form
+     * [i][0][0] Klassen der Label
+     * [i][1][0] Klassenwahrscheinlichkeit p(Ci) Label
+     * [i][2+*][0] Varianz der Features
+     * [i][2+*][1] Mittelwert der Features
+     *
+     */
     public double[][] trainMatrix;
     public double[] trainlabel;
     public double[][][] featureprobability;
 
+    /**
+     * initialisieren der Trainingsmatrix und der Labelmatrix
+     */
     public NaiveBayes(){
         trainMatrix = new double[0][0];
         trainlabel = new double[0];
     }
 
+    /**
+     * Fuegt dem Klassifizierer die Daten hinzu die er lernen soll
+     * @param pattern die feature Matrix der Daten die hinzugefuegt werden
+     * @param label die label zur gegebenen feature Matrix
+     */
     public void addTrainData(double[][] pattern, double[] label){
         double [][] temppattern = trainMatrix;
         double [] templabel = trainlabel;
@@ -38,6 +56,10 @@ public class NaiveBayes {
 
 
     }
+
+    /**
+     * Berechnet die Varianzen und Means der gegebenen Features innerhalb der einzelnen Klassen
+     */
     public void train() {
 
         Integer[] numbers = new Integer[trainlabel.length];
@@ -46,10 +68,10 @@ public class NaiveBayes {
         }
         Set<Integer> uniqKeys = new LinkedHashSet<Integer>(Arrays.asList(numbers ));
 
-        System.out.println(uniqKeys.size());
-        uniqKeys.toArray();
+        //erstellt dein Array mit den auftretenden labeln
         Integer[] labelunique = uniqKeys.toArray(new Integer[uniqKeys.size()]);
         featureprobability = new double[uniqKeys.size()][trainMatrix[0].length+2][2];
+        //splitte die datenmatrix und Label auf die einzelnen Label auf
         for (int i = 0; i <labelunique.length ; i++) {
             int k=0;
             for (int j = 0; j < trainlabel.length; j++) {
@@ -69,9 +91,10 @@ public class NaiveBayes {
 
             }
 
+            //Berechnet die Varianz und Mittelwert auf den Trainingsdaten und weißt sie der Feature Wahrscheinlichkeit zu
             double[] mean = getmean(singlelabelpattern);
             double pmf = (double)k/trainlabel.length;
-            double[] variance = getvariance(singlelabelpattern,pmf,mean);
+            double[] variance = getvariance(singlelabelpattern,mean);
             featureprobability[i][0][0] = labelunique[i];
             featureprobability[i][1][0] = pmf;
             for (int j = 2; j < featureprobability[0].length ; j++){
@@ -82,25 +105,15 @@ public class NaiveBayes {
 
                 }
             }
-            normalize();
+
 
         }
-    public void normalize(){
-        for (int i = 0; i < featureprobability.length ; i++) {
-            double sumvar=0;
-            double summean=0;
-            for (int j = 2; j <featureprobability[i].length ; j++) {
-                sumvar+=featureprobability[i][j][0];
-                summean+=featureprobability[i][j][1];
-            }
 
-            for (int j = 2; j <featureprobability[0].length ; j++) {
-                featureprobability[i][j][0]=featureprobability[i][j][0]/sumvar;
-                featureprobability[i][j][1]=featureprobability[i][j][1]/summean;
-            }
-        }
-    }
-
+    /**
+     * Klassifiziert eine gegebene Feature-Matrix
+     * @param testdata Matrix von Testdaten
+     * @return Array der vorhergesagten Label
+     */
     public double[] classifyalldata(double[][] testdata ){
         double[] predictedlabel = new double[testdata.length];
         for (int i = 0; i < predictedlabel.length; i++) {
@@ -110,7 +123,11 @@ public class NaiveBayes {
         return predictedlabel;
     }
 
-
+    /**
+     * Klassifiziert einzelnen Feature Vektor
+     * @param testdatapattern Feature Vektor einer zu klassifizierenden Matrix
+     * @return vorhergesagtes Label
+     */
     public double classifygaussian(double[] testdatapattern){
         double[] classprobability = new double[featureprobability.length];
         for (int i = 0; i <featureprobability.length ; i++) {
@@ -118,7 +135,7 @@ public class NaiveBayes {
 
             for (int j = 0; j <testdatapattern.length ; j++) {
 
-                //gausswrskt
+                //Berechnen der Gauss Wahrscheinlichkeit
 
                 double proba =((1/Math.sqrt(2*Math.PI*Math.pow(featureprobability[i][j+2][0],2)))*
                                 Math.pow(Math.E,
@@ -131,13 +148,12 @@ public class NaiveBayes {
             }
             double entireprob = featureprobability[i][1][0];
             for (int j = 0; j < testdatapattern.length; j++) {
-                System.out.println("        "+featureinclass[j]);
                 if (featureinclass[j]!=0.0&&featureinclass[j]>0) {
                     entireprob *= featureinclass[j];
                }
             }
             classprobability[i]=entireprob;
-            System.out.println(entireprob+" "+i);
+            System.out.println(entireprob+" "+i+"   Klasse: "+featureprobability[i][0][0]+"   Klassenwahrscheinlichkeit:"+featureprobability[i][1][0]);
         }
         double extremum = 0;
         for (int t = 0; t < 1; t++) {
@@ -163,6 +179,11 @@ public class NaiveBayes {
         return featureprobability[(int)extremum][0][0];
     }
 
+    /**
+     * Berechnet den Mittelwert der einzelnen Features innerhalb eines Labels
+     * @param pattern Trainingsmatrix die in addTraindata eingelesen wurde
+     * @return Mean array der features
+     */
     public double[] getmean(double[][] pattern){
         double[] mean = new double[pattern[0].length];
         for (int i = 0; i < mean.length ; i++) {
@@ -175,7 +196,13 @@ public class NaiveBayes {
         return mean;
     }
 
-    public double[] getvariance(double[][] pattern,double pmf,double[]mean){
+    /**
+     * Berechnet die Varianz der einzelnen Features innerhalb eines Labels
+     * @param pattern Trainingsmatrix die in addTraindata eingelesen wurde
+     * @param mean der Mittelwert array Features
+     * @return Varianz array der features
+     */
+    public double[] getvariance(double[][] pattern,double[]mean){
         double[] variance = new double[pattern[0].length];
         for (int i = 0; i < variance.length ; i++) {
             double sum =0;

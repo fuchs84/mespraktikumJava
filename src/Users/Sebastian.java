@@ -20,7 +20,7 @@ public class Sebastian {
         Data data;
         Data datatest;
         Crossvalidation validation;
-        data = daterino.readCSV("/Users/Sebastian/IdeaProjects/MES_Praktikum/selectedDatabayes.csv");
+        data = daterino.readCSV("/Users/Sebastian/IdeaProjects/MES_Praktikum/selectedDatamore.csv");
         classifier.datalabel = data.getLabel();
         classifier.dataMatrix = data.getPattern();
         datatest = daterino.readCSV("/Users/Sebastian/IdeaProjects/MES_Praktikum/selectedDatapca500010000.csv");
