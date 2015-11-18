@@ -6,6 +6,9 @@ import SelectData.Data;
 import SelectData.NWData;
 import ShowData.ConfusionMatrix;
 
+import java.util.Arrays;
+import java.util.Comparator;
+
 /**
  * Created by MatthiasFuchs on 12.11.15.
  */
@@ -28,7 +31,9 @@ public class Matthias {
         double[] testLabel = data.testLabel;
 
         decisionTree = new DecisionTree();
-        decisionTree.train(trainPattern, trainLabel, 10, 100);
+
+
+        decisionTree.train(trainPattern, trainLabel, 2, 2);
 
         //confusionMatrix = new ConfusionMatrix();
 

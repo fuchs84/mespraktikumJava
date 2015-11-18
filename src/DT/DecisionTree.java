@@ -1,5 +1,7 @@
 package DT;
 
+import com.sun.tools.doclets.formats.html.SourceToHTMLConverter;
+
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -25,21 +27,23 @@ public class DecisionTree {
     public void train (double[][] patterns, double[] labels, int featureSplit, int deep) {
         this.featureSplit = featureSplit;
         //root = build(patterns, labels, null, deep);
-        quantifyValues = new double[patterns[0].length][featureSplit+1];
-        root = build(patterns, labels, null, featureSplit, deep);
+        quantifyData(patterns);
+        double[][] merge = merge(patterns, labels);
+        root = build(transpose(merge), null, featureSplit, deep);
     }
 
-    public Node build (double[][] patterns, double[] labels, Node parent, int children, int deep) {
+    public Node build (double[][] data, Node parent, int children, int deep) {
         Node node = new Node();
         node.parent = parent;
         node.children = new Node[children];
 
-        if(labels.length == 0) {
+        if(data[0].length == 0) {
             System.out.println("Error");
             return null;
         }
-        else if(deep == 0) {
-            int[] distribution = computeClassDistribution(labels);
+        else if(deep <= 0) {
+            System.out.println("Leaf (deep = 0)");
+            int[] distribution = computeClassDistribution(data);
             int maxDistribution = Integer.MIN_VALUE;
             int  maxLabel = 0;
             for (int i = 0; i < distribution.length; i++) {
@@ -54,36 +58,36 @@ public class DecisionTree {
             leafs.add(node);
             return node;
         }
-        else if(isNodePure(labels)) {
+        else if(isNodePure(data[data.length-1])) {
+            System.out.println("Leafe (pure)");
+
             node.setLeaf(true);
-            node.setClassLabel(labels[0]);
+            node.setClassLabel(data[data.length-1][0]);
             node.children = null;
             leafs.add(node);
             return node;
         }
         else {
+            System.out.println("Node");
             node.setLeaf(false);
             double maxIG = Double.NEGATIVE_INFINITY, ig;
-            double[] informationGain = new double[patterns[0].length];
+            double[] informationGain = new double[data.length-1];
             int maxIGFeature = Integer.MIN_VALUE;
-            for(int i = 0; i < patterns[0].length; i++) {
-                informationGain[i] = ig = computeInformationGain(patterns, labels, i);
+            for(int i = 0; i < data.length -1; i++) {
+                informationGain[i] = ig = computeInformationGain(data, i);
                 if(ig > maxIG) {
                     maxIG = ig;
                     maxIGFeature = i;
                 }
             }
+            deep--;
             node.setDecisionAttribute(maxIGFeature);
-
-            List<double[][]> newData = splitData(maxIGFeature, patterns, labels);
-            double[][] newPatterns;
-            double[][] newLabels;
-
+            System.out.println("Selected Feature: " + maxIGFeature + " Deep: " + deep);
+            double[][][] newData = splitData(data, maxIGFeature);
             for (int i = 0; i < featureSplit; i++) {
-                newPatterns = newData.get(i*2);
-                newLabels = newData.get(i*2+1);
-                node.children[i] = build(newPatterns, newLabels[0], node, children, deep);
+                node.children[i] = build(newData[i], node, children, deep);
             }
+
             return node;
         }
     }
@@ -220,11 +224,26 @@ public class DecisionTree {
         return featureAttribute;
     }
 
-    private double[][] merge(double[][] patterns, double[] labels) {
-        double[][] merge = new double[patterns.length][patterns[0].length +1];
+
+    private int[] computeClassDistribution(double[][] data) {
+        int numberOfLabels = data[0].length;
+        int maxLabel = computeMaxLabel(data[data.length-1]);
+        int [] distribution = new int[maxLabel+1];
+        for (int i = 0; i < numberOfLabels; i++) {
+            distribution[(int)data[data.length-1][i]]++;
+        }
+        return distribution;
+    }
+
+    public double[][] merge(double[][] patterns, double[] labels) {
+        if (patterns.length != labels.length) {
+            System.out.println("Patterns und Labels passen nicht zusammen!");
+            return null;
+        }
+        double[][] merge = new double[patterns.length][patterns[0].length + 1];
         for (int i = 0; i < merge.length; i++) {
             for (int j = 0; j < merge[0].length; j++) {
-                if (j == patterns[0].length) {
+                if(j == merge[0].length-1) {
                     merge[i][j] = labels[i];
                 } else {
                     merge[i][j] = patterns[i][j];
@@ -235,21 +254,26 @@ public class DecisionTree {
     }
 
 
-    private double[][] sortAndMerge(double[] selectedFeature, double[] label) {
-        double [][] merge = new double[selectedFeature.length][2];
-        for (int i = 0; i < selectedFeature.length; i++) {
-            merge[i][0] = selectedFeature[i];
-            merge[i][1] = label[i];
-        }
-
-        Arrays.sort(merge, new Comparator<double[]>() {
-            public int compare(double[] double1, double[] double2) {
-                Double numOfKeys1 = double1[0];
-                Double numOfKeys2 = double2[0];
-                return numOfKeys1.compareTo(numOfKeys2);
-            }
+    public double[][] sort(double[][] data, int featureNumber) {
+        double[][] transpose = transpose(data);
+        Arrays.sort(transpose, (double1, double2) -> {
+            Double numOfKeys1 = double1[featureNumber];
+            Double numOfKeys2 = double2[featureNumber];
+            return numOfKeys1.compareTo(numOfKeys2);
         });
-        return merge;
+        data = transpose(transpose);
+        return data;
+    }
+
+    private double[][] transpose(double[][] data) {
+        double[][] transpose = new double[data[0].length][data.length];
+        for (int i = 0; i < transpose.length; i++) {
+            for (int j = 0; j < transpose[0].length; j++) {
+                transpose[i][j] = data[j][i];
+            }
+
+        }
+        return transpose;
     }
 
     public void quantifyData(double[][] patterns) {
@@ -282,9 +306,9 @@ public class DecisionTree {
         }
     }
 
-    private double[][] computeSubLabels(double[][] patterns, double[] labels, int featureNumber) {
+    private double[][] computeSubLabels(double[][] data, int featureNumber) {
         double[][] subLabels = new double[featureSplit][];
-        double[] selectedFeature = selectFeature(patterns, featureNumber);
+        double[] selectedFeature = selectFeature(data, featureNumber);
         double upperBound, lowerBound;
         int count, index;
         for (int i = 0; i < featureSplit; i++) {
@@ -295,7 +319,7 @@ public class DecisionTree {
             index = 0;
             for (int j = 0; j < selectedFeature.length; j++) {
                 if (lowerBound < selectedFeature[j] && selectedFeature[j] <= upperBound) {
-                    subLabels[i][index] = labels[j];
+                    subLabels[i][index] = data[data.length-1][j];
                     index++;
                 }
             }
@@ -303,13 +327,14 @@ public class DecisionTree {
         return subLabels;
     }
 
-    private double computeInformationGain(double[][] patterns, double[] labels, int featureNumber) {
+    private double computeInformationGain(double[][] data, int featureNumber) {
+        double[] labels = data[data.length-1];
         int numberOfLabels = labels.length;
         double[][] subLabels;
         double probability;
 
         double gain = computeEntropy(labels, numberOfLabels);
-        subLabels = computeSubLabels(patterns, labels, featureNumber);
+        subLabels = computeSubLabels(data, featureNumber);
 
         for (int j = 0; j < featureSplit; j++) {
             probability = ((double)subLabels[j].length)/((double)labels.length);
@@ -318,31 +343,29 @@ public class DecisionTree {
         return gain;
     }
 
-    private List<double[][]> splitData(int featureNumber, double[][] patterns, double[] labels) {
-        List<double[][]> splitData = new LinkedList<>();
-        double [] selectedFeature = selectFeature(patterns, featureNumber);
-        int count = 0;
+    private double[][][] splitData(double[][] data, int featureNumber) {
+        double[][] dataSort = sort(data, featureNumber);
+        double[][][] splitData = new double[featureSplit][][];
+        int[] distribution = new int[featureSplit];
         double upperBound, lowerBound;
-
-        double[][] newPatterns, newLabels;
-
-        for(int i = 0; i < featureSplit; i++) {
-            upperBound = quantifyValues[featureNumber][i+1];
+        for (int i = 0; i < featureSplit; i++) {
             lowerBound = quantifyValues[featureNumber][i];
-            count = countHitValue(selectedFeature, lowerBound, upperBound);
-            newPatterns = new double[count][patterns[0].length];
-            newLabels = new double[1][count];
-            int countHits = 0;
-            for (int j = 0; j < selectedFeature.length; i++) {
-                if(lowerBound < selectedFeature[i] && selectedFeature[i] <= upperBound) {
-                    newPatterns[countHits] = patterns[j];
-                    newLabels[0][countHits] = labels[i];
-                    countHits++;
+            upperBound = quantifyValues[featureNumber][i+1];
+            distribution[i] = countHitValue(data[featureNumber], lowerBound, upperBound);
+            System.out.println("distribution: " + distribution[i]);
+        }
+        int offset = 0;
+        for (int i = 0; i < featureSplit; i++) {
+            splitData[i] = new double[data.length][distribution[i]];
+            for (int j = 0; j < data.length; j++) {
+                for(int k = 0; k < distribution[i]; k++) {
+                    splitData[i][j][k] = dataSort[j][k + offset];
                 }
             }
-            splitData.add(newPatterns);
-            splitData.add(newLabels);
+
+            offset += distribution[i];
         }
+
         return splitData;
     }
 
