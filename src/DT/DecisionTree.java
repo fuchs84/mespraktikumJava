@@ -17,20 +17,58 @@ public class DecisionTree {
     private List<Integer> usedFeature = new LinkedList<>();
     private List<Node> leafs = new LinkedList<>();
     private double[][] quantifyValues;
+    private int defaultLabel;
+    private double[] values = {Double.NEGATIVE_INFINITY, -3.0, -2.0, -1.0, -0.5, 0.0, 0.5, 1.0, 2.0, 3.0, Double.POSITIVE_INFINITY};
     /**
      * Methode legt einen neuen DT an und trainiert ihn mit den übergebenen Daten
      * @param patterns Train-Patterns
      * @param labels Train-Labels
-     * @param featureSplit Anzahl der Aufteilungen der einen Features
      * @param deep Maximale Tiefe des Baums
      */
-    public void train (double[][] patterns, double[] labels, int featureSplit, int deep) {
+    public void train (double[][] patterns, double[] labels, int deep) {
         this.featureSplit = featureSplit;
-        //root = build(patterns, labels, null, deep);
-        quantifyData(patterns);
+        patterns = standardization(patterns);
+        featureSplit = values.length - 1;
+        //quantifyData(patterns);
         double[][] merge = merge(patterns, labels);
+        defaultLabel = computeStrongestLabel(labels);
         root = build(transpose(merge), null, featureSplit, deep);
     }
+
+    private double[][] standardization(double[][] patterns) {
+        double[] median = new double[patterns[0].length];
+        double[] standardDeviation = new double[patterns[0].length];
+        double[] min = new double[patterns[0].length];
+        double[] max = new double[patterns[0].length];
+        double samples = (double)patterns.length;
+
+        for (int i = 0; i < patterns[0].length; i++) {
+            min[i] = Double.POSITIVE_INFINITY;
+            max[i] = Double.NEGATIVE_INFINITY;
+            for (int j = 0; j < patterns.length; j++) {
+                if(min[i] > patterns[j][i]) {
+                    min[i] = patterns[j][i];
+                }
+                if (max[i] < patterns[j][i]) {
+                    max[i] = patterns[j][i];
+                }
+                median[i] += patterns[j][i];
+            }
+            median[i] = median[i]/samples;
+            for (int j = 0; j < patterns.length; j++) {
+                standardDeviation[i] += Math.pow(patterns[j][i]-median[i], 2);
+            }
+            standardDeviation[i] = Math.sqrt(standardDeviation[i]/samples);
+
+            for(int j = 0; j < patterns.length; j++) {
+                patterns[j][i] = (patterns[j][i] - median[i])/standardDeviation[i];
+            }
+
+        }
+        return patterns;
+    }
+
+
 
     public Node build (double[][] data, Node parent, int children, int deep) {
         Node node = new Node();
@@ -38,8 +76,11 @@ public class DecisionTree {
         node.children = new Node[children];
 
         if(data[0].length == 0) {
-            System.out.println("Error");
-            return null;
+            System.out.println("Leaf (patterns = 0)");
+            node.setLeaf(true);
+            node.setClassLabel((double) defaultLabel);
+            leafs.add(node);
+            return node;
         }
         else if(deep <= 0) {
             System.out.println("Leaf (deep = 0)");
@@ -47,6 +88,7 @@ public class DecisionTree {
             int maxDistribution = Integer.MIN_VALUE;
             int  maxLabel = 0;
             for (int i = 0; i < distribution.length; i++) {
+
                 if (maxDistribution < distribution[i]) {
                     maxDistribution = distribution[i];
                     maxLabel = i;
@@ -59,7 +101,7 @@ public class DecisionTree {
             return node;
         }
         else if(isNodePure(data[data.length-1])) {
-            System.out.println("Leafe (pure)");
+            System.out.println("Leaf (pure)");
 
             node.setLeaf(true);
             node.setClassLabel(data[data.length-1][0]);
@@ -71,157 +113,33 @@ public class DecisionTree {
             System.out.println("Node");
             node.setLeaf(false);
             double maxIG = Double.NEGATIVE_INFINITY, ig;
-            double[] informationGain = new double[data.length-1];
             int maxIGFeature = Integer.MIN_VALUE;
             for(int i = 0; i < data.length -1; i++) {
-                informationGain[i] = ig = computeInformationGain(data, i);
-                if(ig > maxIG) {
+                ig = computeInformationGain(data, i);
+                if(ig > maxIG /*&& !usedFeature.contains(i)*/) {
                     maxIG = ig;
                     maxIGFeature = i;
                 }
             }
+            usedFeature.add(maxIGFeature);
+
             deep--;
             node.setDecisionAttribute(maxIGFeature);
-            System.out.println("Selected Feature: " + maxIGFeature + " Deep: " + deep);
+            node.setDecisionValues(values);
+
+            System.out.println("Selected Feature: " + maxIGFeature + " IG: " + maxIG + " Deep: " + deep);
             double[][][] newData = splitData(data, maxIGFeature);
+
+            for (int i = 0; i < featureSplit; i++) {
+                System.out.println("Verteilung: " + newData[i][0].length);
+            }
+
             for (int i = 0; i < featureSplit; i++) {
                 node.children[i] = build(newData[i], node, children, deep);
             }
 
             return node;
         }
-    }
-
-    /**
-     * Methode erstellt einen neuen Konten wenn die maximale Tiefe noch nicht erreicht wurde oder das Label noch nicht pure ist,
-     * ansonsten erstellt die Methode ein Blatt
-     * @param patterns Train-Patterns
-     * @param labels Train-Labels
-     * @param parent Vorgängerkonten/Elternknoten
-     * @param countDeep Tiefe des Baums
-     * @return neuen Knoten
-     */
-    public Node build (double[][] patterns, double[] labels, Node parent, int countDeep) {
-
-        if(labels.length == 0) {
-            System.out.println("Error");
-            return null;
-        }
-        else if (countDeep == 0) {
-            Node node = new Node();
-            node.parent = parent;
-            node.setDecisionValueUpperBound(Double.NEGATIVE_INFINITY);
-            node.setDecisionAttribute(Integer.MIN_VALUE);
-            int[] distribution = computeClassDistribution(labels);
-            int maxDistribution = Integer.MIN_VALUE;
-            int  maxLabel = 0;
-            for (int i = 0; i < distribution.length; i++) {
-                if (maxDistribution < distribution[i]) {
-                    maxDistribution = distribution[i];
-                    maxLabel = i;
-                }
-            }
-            node.setClassLabel(maxLabel);
-            System.out.println("Leaf");
-            node.setLeaf(true);
-            node.left = null;
-            node.right = null;
-            leafs.add(node);
-            return node;
-        }
-        else if(isNodePure(labels) == true) {
-            Node node = new Node();
-            node.parent = parent;
-            node.setDecisionValueUpperBound(Double.NEGATIVE_INFINITY);
-            node.setDecisionAttribute(Integer.MIN_VALUE);
-            node.setClassLabel(labels[0]);
-            System.out.println("Leaf");
-            node.setLeaf(true);
-            node.left = null;
-            node.right = null;
-            leafs.add(node);
-            return node;
-        } else {
-            System.out.println("Laenge: " + labels.length);
-            Node node = new Node();
-            node.parent = parent;
-            node.setLeaf(false);
-            node.setClassLabel(Double.NEGATIVE_INFINITY);
-            double[][] featureAttribute = computeFeatureAttribute(patterns);
-            double [][] entropyReduction = computeEntropyReduction(patterns, labels, featureAttribute);
-
-            double minEntropy = Double.POSITIVE_INFINITY;
-            int featureIndex = Integer.MIN_VALUE, valueIndex = Integer.MIN_VALUE;
-            for (int i = 0; i < entropyReduction.length; i++) {
-                for (int j = 0; j < entropyReduction[0].length; j++) {
-                    if(entropyReduction[i][j] < minEntropy) {
-                        minEntropy = entropyReduction[i][j];
-                        featureIndex = i;
-                        valueIndex = j;
-                    }
-                }
-            }
-
-            usedFeature.add(featureIndex);
-
-            System.out.println("Used Features: ");
-            for(int i = 0; i < usedFeature.size(); i++) {
-                System.out.print(usedFeature.get(i) + " ");
-            }
-            System.out.println();
-
-
-            double value = featureAttribute[featureIndex][valueIndex];
-
-            System.out.println("Feature: " + featureIndex + " Value: " + valueIndex + " Value: " + value);
-
-            node.setDecisionAttribute(featureIndex);
-            node.setDecisionValueUpperBound(value);
-            List<double[][]> newData = splitData(featureIndex, value, patterns, labels);
-            double [][] leftPatterns = newData.get(0);
-            double [][] leftLabels = newData.get(1);
-            double [][] rightPatterns = newData.get(2);
-            double [][] rightLabels = newData.get(3);
-
-            System.out.println("left: " + leftPatterns.length + " " + leftLabels[0].length);
-            System.out.println("right: " + rightPatterns.length + " " + rightLabels[0].length);
-            System.out.println();
-
-            countDeep--;
-            node.left = build(leftPatterns, leftLabels[0], node, countDeep);
-            node.right = build(rightPatterns, rightLabels[0], node, countDeep);
-            return node;
-        }
-    }
-
-
-    /**
-     *  * Methode teilt die einzelnen Features in Bereiche ein und speichert sie in featureAttribute ab.
-     * @param patterns Train-Patterns
-     * @return FeatureAttribute enthaelt die Grenzen der jeweiligen Features
-     */
-    private double[][] computeFeatureAttribute(double[][] patterns) {
-        double [][] featureAttribute = new double[patterns[0].length][featureSplit-1];
-        double max;
-        double min;
-        double splitSize;
-        for (int i = 0; i < patterns[0].length; i++) {
-            max = Double.NEGATIVE_INFINITY;
-            min = Double.POSITIVE_INFINITY;
-            for (int j = 0; j < patterns.length; j++) {
-                if (max < patterns[j][i]) {
-                    max = patterns[j][i];
-                }
-                if (min > patterns[j][i]) {
-                    min = patterns[j][i];
-                }
-            }
-            splitSize = (max - min)/((double) featureSplit);
-            for(int j = 0; j < featureSplit-1; j++) {
-                featureAttribute[i][j] = min + splitSize * (double)(j +1);
-            }
-        }
-        return featureAttribute;
     }
 
 
@@ -235,7 +153,18 @@ public class DecisionTree {
         return distribution;
     }
 
-    public double[][] merge(double[][] patterns, double[] labels) {
+    private int[] computeClassDistribution(double[] labels) {
+        int numberOfLabels = labels.length;
+        int maxLabel = computeMaxLabel(labels);
+        int [] distribution = new int[maxLabel+1];
+        for (int i = 0; i < numberOfLabels; i++) {
+            distribution[(int)labels[i]]++;
+        }
+        return distribution;
+    }
+
+
+    private double[][] merge(double[][] patterns, double[] labels) {
         if (patterns.length != labels.length) {
             System.out.println("Patterns und Labels passen nicht zusammen!");
             return null;
@@ -254,7 +183,7 @@ public class DecisionTree {
     }
 
 
-    public double[][] sort(double[][] data, int featureNumber) {
+    private double[][] sort(double[][] data, int featureNumber) {
         double[][] transpose = transpose(data);
         Arrays.sort(transpose, (double1, double2) -> {
             Double numOfKeys1 = double1[featureNumber];
@@ -276,7 +205,7 @@ public class DecisionTree {
         return transpose;
     }
 
-    public void quantifyData(double[][] patterns) {
+    private void quantifyData(double[][] patterns) {
         quantifyValues = new double[patterns[0].length][featureSplit+1];
         double max, min;
         double quantify;
@@ -307,40 +236,61 @@ public class DecisionTree {
     }
 
     private double[][] computeSubLabels(double[][] data, int featureNumber) {
+        double[][] sortData = sort(data, featureNumber);
         double[][] subLabels = new double[featureSplit][];
-        double[] selectedFeature = selectFeature(data, featureNumber);
         double upperBound, lowerBound;
-        int count, index;
+        int count, offset = 0;
         for (int i = 0; i < featureSplit; i++) {
-            upperBound = quantifyValues[featureNumber][i];
-            lowerBound = quantifyValues[featureNumber][i+1];
-            count = countHitValue(selectedFeature,lowerBound, upperBound);
+            lowerBound = values[i];
+            upperBound = values[i+1];
+            //upperBound = quantifyValues[featureNumber][i+1];
+            //lowerBound = quantifyValues[featureNumber][i];
+            count = countHitValue(data[featureNumber],lowerBound, upperBound);
             subLabels[i] = new double[count];
-            index = 0;
-            for (int j = 0; j < selectedFeature.length; j++) {
-                if (lowerBound < selectedFeature[j] && selectedFeature[j] <= upperBound) {
-                    subLabels[i][index] = data[data.length-1][j];
-                    index++;
-                }
+            for (int j = 0; j < subLabels[i].length; j++) {
+                subLabels[i][j] = sortData[sortData.length-1][j+offset];
             }
+            offset += count;
         }
         return subLabels;
     }
 
     private double computeInformationGain(double[][] data, int featureNumber) {
         double[] labels = data[data.length-1];
-        int numberOfLabels = labels.length;
         double[][] subLabels;
         double probability;
 
-        double gain = computeEntropy(labels, numberOfLabels);
+        double gain = computeEntropy(labels);
         subLabels = computeSubLabels(data, featureNumber);
-
         for (int j = 0; j < featureSplit; j++) {
             probability = ((double)subLabels[j].length)/((double)labels.length);
-            gain -= (probability) * computeEntropy(subLabels[j], numberOfLabels);
+            gain -= (probability) * computeEntropy(subLabels[j]);
         }
         return gain;
+    }
+
+    /**
+     * Methode zur Berechnung der Entropy
+     * @param labels Labels/Sublabels auf den die Entropy berechnet werden soll
+     * @return gibt den Entropywert zurueck
+     */
+    private double computeEntropy(double[] labels) {
+        int numberOfLabels = labels.length;
+        int maxLabel = computeMaxLabel(labels);
+        int[] distribution = computeClassDistribution(labels);
+
+
+        double entropy = 0.0;
+        double probability;
+        for (int i = 0; i <= maxLabel; i++) {
+
+            if (distribution[i] != 0) {
+
+                probability = ((double)distribution[i])/((double)numberOfLabels);
+                entropy += -(probability) * (Math.log(probability) / Math.log(2.0));
+            }
+        }
+        return entropy;
     }
 
     private double[][][] splitData(double[][] data, int featureNumber) {
@@ -349,10 +299,11 @@ public class DecisionTree {
         int[] distribution = new int[featureSplit];
         double upperBound, lowerBound;
         for (int i = 0; i < featureSplit; i++) {
-            lowerBound = quantifyValues[featureNumber][i];
-            upperBound = quantifyValues[featureNumber][i+1];
+            lowerBound = values[i];
+            upperBound = values[i+1];
+            //lowerBound = quantifyValues[featureNumber][i];
+            //upperBound = quantifyValues[featureNumber][i+1];
             distribution[i] = countHitValue(data[featureNumber], lowerBound, upperBound);
-            System.out.println("distribution: " + distribution[i]);
         }
         int offset = 0;
         for (int i = 0; i < featureSplit; i++) {
@@ -362,140 +313,12 @@ public class DecisionTree {
                     splitData[i][j][k] = dataSort[j][k + offset];
                 }
             }
-
             offset += distribution[i];
         }
 
         return splitData;
     }
 
-    /**
-     * Methode trennt die Labels in SubLabels auf zum Berechnen des Information Gains
-     * @param patterns Train-Patterns zur Entscheidung der SubLevel Einteilung
-     * @param labels Train-Patterns zur Einteilung in SubLabels
-     * @param featureNumber Ausgewaehltes Feature nachdem SubLabels getrennt wird.
-     * @param featureAttribute Zum Bestimmen der Grenzen
-     * @return Sublabels;
-     */
-    private double[][] computeSubLabels(double[][] patterns, double[] labels, int featureNumber, double[][] featureAttribute) {
-        double[][] subLabels = new double[featureSplit-1][];
-        double upperBound;
-        double[] selectedFeature = selectFeature(patterns, featureNumber);
-        int count, index;
-        for (int i = 0; i < featureSplit-1; i++) {
-            upperBound = featureAttribute[featureNumber][i];
-            count = countHitValue(selectedFeature, Double.NEGATIVE_INFINITY, upperBound);
-            subLabels[i] = new double[count];
-            index = 0;
-            for (int j = 0; j < selectedFeature.length; j++) {
-                if (selectedFeature[j] <= upperBound) {
-                    subLabels[i][index] = labels [j];
-                    index++;
-                }
-            }
-        }
-        return subLabels;
-    }
-
-    /**
-     * Methode teilt die Daten in zwei Bereiche auf (rechts/links vom Knoten)
-     * @param featureNumber Ausgewaeltes Feature, das die Aufteilung bestimmt
-     * @param value Featurewert, das die Aufteilungsgrenze definiert
-     * @param patterns Aufzuteilendes Patterns
-     * @param labels Aufzuteilendes Labels
-     * @return Liste mit rechten und linken Patterns/Labels
-     */
-    private List<double[][]> splitData(int featureNumber, double value, double[][] patterns, double[] labels) {
-        List<double[][]> splitData = new LinkedList<>();
-        double [] selectedFeature = selectFeature(patterns, featureNumber);
-        int count = countHitValue(selectedFeature, Double.NEGATIVE_INFINITY, value);
-        double[][] leftPatterns = new double[count][];
-        double [][] leftLabels = new double[1][count];
-        double[][] rightPatterns = new double[selectedFeature.length-count][];
-        double [][] rightLabels = new double[1][selectedFeature.length-count];
-
-
-        int countRight = 0, countLeft = 0;
-
-        for (int i = 0; i < selectedFeature.length; i++) {
-            if(selectedFeature[i] <= value) {
-                leftPatterns[countLeft] = patterns[i];
-                leftLabels[0][countLeft] = labels[i];
-                countLeft++;
-            } else {
-                rightPatterns[countRight] = patterns[i];
-                rightLabels[0][countRight] = labels[i];
-                countRight++;
-            }
-        }
-
-        splitData.add(leftPatterns);
-        splitData.add(leftLabels);
-        splitData.add(rightPatterns);
-        splitData.add(rightLabels);
-        return splitData;
-    }
-
-    /**
-     * Methode selektiert ein ausgewaehltes Feature aus den Train-Patterns
-     * @param patterns Train-Patterns
-     * @param featureNumber Ausgewähltes Feature
-     * @return Selektiertes Feature aus den Train-Patterns
-     */
-    private double [] selectFeature(double[][] patterns, int featureNumber) {
-        double[] selectedFeature = new double[patterns.length];
-        for(int i = 0; i < patterns.length; i++) {
-            selectedFeature[i] = patterns[i][featureNumber];
-        }
-        return selectedFeature;
-    }
-
-
-
-
-
-    /**
-     * Methode berechnet die Entropy für die einzelnen Features
-     * @param patterns Train-Patterns zur berechnung der Sublabels
-     * @param labels Train-Labels zur Berechnung der Entropy
-     * @param featureAttribute Attribute zur Aufteilung in Sublabels
-     * @return double-2d-Array mit den Entropywerten
-     */
-    private double[][] computeEntropyReduction(double[][] patterns, double[] labels, double[][] featureAttribute) {
-        int numberOfFeatures = patterns[0].length;
-        int numberOfLabels = labels.length;
-        double[][] subLabels;
-        double[][] entropyReduction = new double[numberOfFeatures][featureSplit-1];
-        for(int i = 0; i < numberOfFeatures; i++) {
-            subLabels = computeSubLabels(patterns, labels, i, featureAttribute);
-            for (int j = 0; j < featureSplit-1; j++) {
-                entropyReduction[i][j] = computeEntropy(subLabels[j], numberOfLabels);
-            }
-        }
-        return entropyReduction;
-    }
-
-
-    /**
-     * Methode zur Berechnung der Entropy
-     * @param labels Labels/Sublabels auf den die Entropy berechnet werden soll
-     * @return gibt den Entropywert zurueck
-     */
-    private double computeEntropy(double[] labels, int numberOfLabels) {
-        int maxLabel = computeMaxLabel(labels);
-        int[] distribution = computeClassDistribution(labels);
-
-
-        double entropy = 0.0;
-        double probability;
-        for (int i = 0; i <= maxLabel; i++) {
-            if (distribution[i] != 0) {
-                probability = ((double)distribution[i])/((double)numberOfLabels);
-                entropy += -(probability) * (Math.log(probability) / Math.log(2.0));
-            }
-        }
-        return entropy;
-    }
 
     /**
      * Methode sucht das maximale Label, dass in Labels/Sublabels vorkomm
@@ -518,15 +341,23 @@ public class DecisionTree {
      * @param labels Label/Sublabel, auf der die Verteilung berechnet wird.
      * @return int-Array mit der Labelverteilung
      */
-    private int[] computeClassDistribution(double [] labels) {
+    private int computeStrongestLabel (double [] labels) {
         int numberOfLabels = labels.length;
+        int strongestLabel = Integer.MIN_VALUE;
+        int numberOfStrongestLabel = Integer.MIN_VALUE;
         int maxLabel = computeMaxLabel(labels);
         int [] distribution = new int[maxLabel+1];
 
         for (int i = 0; i < numberOfLabels; i++) {
             distribution[(int)labels[i]]++;
         }
-        return distribution;
+        for (int i = 0; i < distribution.length; i++) {
+            if(distribution[i] > numberOfStrongestLabel) {
+                numberOfStrongestLabel = distribution[i];
+                strongestLabel = i;
+            }
+        }
+        return strongestLabel;
     }
 
     /**
@@ -538,7 +369,7 @@ public class DecisionTree {
     private int countHitValue(double [] selectedFeature, double lowerBound, double upperBound) {
         int count = 0;
         for (int i = 0; i < selectedFeature.length; i++) {
-            if (lowerBound < selectedFeature[i] && selectedFeature[i] <= upperBound) {
+            if (lowerBound <= selectedFeature[i] && selectedFeature[i] < upperBound) {
                 count++;
             }
         }
@@ -573,6 +404,7 @@ public class DecisionTree {
      * @return double-Array mit den jeweiligen Labels
      */
     public double[] classify(double[][] patterns) {
+        patterns = standardization(patterns);
         double[] labels = new double[patterns.length];
         for (int i = 0; i < patterns.length; i++) {
             labels[i] = passTree(patterns[i]);
@@ -587,12 +419,18 @@ public class DecisionTree {
      */
     public double passTree(double[] pattern) {
         Node node = root;
-        double classified;
+        double classified, upperBound, lowerBound;
+        double[] values;
+        int feature;
         while (node.getLeaf() == false) {
-            if (pattern[node.getDecisionAttribute()] <= node.getDecisionValueUpperBound()) {
-                node = node.left;
-            } else {
-                node = node.right;
+            feature = node.getDecisionAttribute();
+            values = node.getDecisionValues();
+            for (int i = 0; i < featureSplit; i++) {
+                lowerBound = values[i];
+                upperBound = values[i+1];
+                if(lowerBound <= pattern[feature] && pattern[feature] < upperBound) {
+                    node = node.children[i];
+                }
             }
         }
         classified = node.getClassLabel();
