@@ -33,7 +33,7 @@ public class Matthias {
         decisionTree = new DecisionTree();
 
         //Best Result: 2 (10)
-        decisionTree.train(trainPattern, trainLabel, 2, false);
+        decisionTree.train(trainPattern, trainLabel, 2, true);
 
         confusionMatrix = new ConfusionMatrix();
 

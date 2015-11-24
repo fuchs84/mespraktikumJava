@@ -70,7 +70,7 @@ public class DecisionTree {
         distribution = computeClassDistribution(labels);
         numberOfLabels = labels.length;
 
-        root = build(transpose(merge), null, featureSplit, deep);
+        root = build(transpose(merge), null, deep);
     }
 
     /**
@@ -107,14 +107,13 @@ public class DecisionTree {
      * Methode baut entweder einen neuen Knoten oder ein Blatt
      * @param data Train-Daten (Patterns + Labels)
      * @param parent Elternknoten
-     * @param children Anzahl der Kinderknoten
      * @param deep Tiefe des Baums
      * @return Knoten oder Blatt
      */
-    public Node build (double[][] data, Node parent, int children, int deep) {
+    public Node build (double[][] data, Node parent, int deep) {
         Node node = new Node();
         node.parent = parent;
-        node.children = new Node[children];
+
 
         if(data[0].length == 0) {
             System.out.println("Leaf (patterns = 0)");
@@ -190,15 +189,17 @@ public class DecisionTree {
 
                 double[][][] newData = splitData(data, minGIFeature, value);
 
-                System.out.println("Selected Feature: " + minGIFeature + " GI: " + minGI + " Deep: " + deep);
+                System.out.println("Selected Feature: " + minGIFeature + " GI: " + minGI  + " Value " + value + " Deep: " + deep);
                 for (int i = 0; i < 2; i++) {
                     System.out.println("Verteilung: " + newData[i][0].length);
                 }
 
-                node.left = build(newData[0], node, children, deep);
-                node.right = build(newData[1], node, children, deep);
+                node.left = build(newData[0], node, deep);
+                node.right = build(newData[1], node, deep);
             }
             else  {
+
+
                 double maxIG = Double.NEGATIVE_INFINITY;
                 int maxIGFeature = Integer.MIN_VALUE;
                 double informationGain;
@@ -218,16 +219,10 @@ public class DecisionTree {
                 System.out.println("Selected Feature: " + maxIGFeature + " IG: " + maxIG + " Deep: " + deep);
                 double[][][] newData = splitData(data, maxIGFeature);
 
-                for (int i = 0; i < featureSplit; i++) {
-
-                }
+                node.children = new Node[featureSplit];
 
                 for (int i = 0; i < featureSplit; i++) {
-                    System.out.println("Verteilung: " + newData[i][0].length);
-                }
-
-                for (int i = 0; i < featureSplit; i++) {
-                    node.children[i] = build(newData[i], node, children, deep);
+                    node.children[i] = build(newData[i], node, deep);
                 }
             }
             return node;
@@ -358,13 +353,18 @@ public class DecisionTree {
         double[] giniIndex = new double[featureSplit];
         double probability;
 
+        System.out.println("Feature: " + featureNumber);
         for (int i = 0; i < featureSplit; i++) {
             giniIndex[i] = 1.0;
+
+
             probability = ((double)subLabels[i].length)/((double)numberOfLabels);
             if(probability < 1.0) {
                 giniIndex[i] -= Math.pow(probability, 2.0);
             }
+            System.out.print(" Sub " + subLabels[i].length + " GI " + giniIndex[i]);
         }
+        System.out.println();
 
         return giniIndex;
     }
