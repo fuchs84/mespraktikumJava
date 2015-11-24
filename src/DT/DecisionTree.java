@@ -70,7 +70,7 @@ public class DecisionTree {
         distribution = computeClassDistribution(labels);
         numberOfLabels = labels.length;
 
-        root = build(transpose(merge), null, featureSplit, deep, binary);
+        root = build(transpose(merge), null, featureSplit, deep);
     }
 
     /**
@@ -109,10 +109,9 @@ public class DecisionTree {
      * @param parent Elternknoten
      * @param children Anzahl der Kinderknoten
      * @param deep Tiefe des Baums
-     * @param binary Binärbaum
      * @return Knoten oder Blatt
      */
-    public Node build (double[][] data, Node parent, int children, int deep, boolean binary) {
+    public Node build (double[][] data, Node parent, int children, int deep) {
         Node node = new Node();
         node.parent = parent;
         node.children = new Node[children];
@@ -196,8 +195,8 @@ public class DecisionTree {
                     System.out.println("Verteilung: " + newData[i][0].length);
                 }
 
-                node.left = build(newData[0], node, children, deep, binary);
-                node.right = build(newData[1], node, children, deep, binary);
+                node.left = build(newData[0], node, children, deep);
+                node.right = build(newData[1], node, children, deep);
             }
             else  {
                 double maxIG = Double.NEGATIVE_INFINITY;
@@ -228,7 +227,7 @@ public class DecisionTree {
                 }
 
                 for (int i = 0; i < featureSplit; i++) {
-                    node.children[i] = build(newData[i], node, children, deep, binary);
+                    node.children[i] = build(newData[i], node, children, deep);
                 }
             }
             return node;
