@@ -2,6 +2,7 @@ package DT;
 
 import com.sun.tools.doclets.formats.html.SourceToHTMLConverter;
 
+import java.awt.*;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -12,56 +13,77 @@ import java.util.List;
  */
 public class DecisionTree {
 
+    private boolean binary;
+
     private int featureSplit;
     private Node root;
     private List<Integer> usedFeature = new LinkedList<>();
     private List<Node> leafs = new LinkedList<>();
     private double[][] quantifyValues;
     private int defaultLabel;
-    private double[] values = {Double.NEGATIVE_INFINITY, -3.0, -2.0, -1.0, -0.5, 0.0, 0.5, 1.0, 2.0, 3.0, Double.POSITIVE_INFINITY};
+    private int[] distribution;
+    private int numberOfLabels;
+    private double[] values = {Double.NEGATIVE_INFINITY, -3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0, Double.POSITIVE_INFINITY};
     /**
      * Methode legt einen neuen DT an und trainiert ihn mit den übergebenen Daten
      * @param patterns Train-Patterns
      * @param labels Train-Labels
      * @param deep Maximale Tiefe des Baums
      */
-    public void train (double[][] patterns, double[] labels, int deep) {
-        this.featureSplit = featureSplit;
+    public void train (double[][] patterns, double[] labels, int deep, boolean binary) {
+        this.binary = binary;
         patterns = standardization(patterns);
         featureSplit = values.length - 1;
-        //quantifyData(patterns);
+
+//        int[] distribution;
+//        double upperBound, lowerBound;
+//        for (int h = 0; h < patterns[0].length; h++) {
+//            System.out.println("Feature: " + h);
+//            distribution = new int[featureSplit];
+//            int sum = 0;
+//            for (int i = 0; i < featureSplit; i++) {
+//
+//                upperBound = values[i+1];
+//                lowerBound = values[i];
+//                for (int j = 0; j < patterns.length; j++) {
+//                    if (lowerBound <= patterns[j][h] && patterns[j][h] < upperBound) {
+//                        distribution[i]++;
+//                    }
+//                }
+//                sum += distribution[i];
+//                System.out.println("Verteilung " + i + ": " + distribution[i]);
+//            }
+//            System.out.println("Summe " + sum);
+//        }
+
+
         double[][] merge = merge(patterns, labels);
         defaultLabel = computeStrongestLabel(labels);
-        root = build(transpose(merge), null, featureSplit, deep);
+        distribution = computeClassDistribution(labels);
+        numberOfLabels = labels.length;
+
+        root = build(transpose(merge), null, featureSplit, deep, binary);
     }
 
     private double[][] standardization(double[][] patterns) {
-        double[] median = new double[patterns[0].length];
-        double[] standardDeviation = new double[patterns[0].length];
-        double[] min = new double[patterns[0].length];
-        double[] max = new double[patterns[0].length];
-        double samples = (double)patterns.length;
 
+        double samples = (double)patterns.length;
+        double median;
+        double standardDeviation;
         for (int i = 0; i < patterns[0].length; i++) {
-            min[i] = Double.POSITIVE_INFINITY;
-            max[i] = Double.NEGATIVE_INFINITY;
+            median = 0;
+            standardDeviation = 0;
             for (int j = 0; j < patterns.length; j++) {
-                if(min[i] > patterns[j][i]) {
-                    min[i] = patterns[j][i];
-                }
-                if (max[i] < patterns[j][i]) {
-                    max[i] = patterns[j][i];
-                }
-                median[i] += patterns[j][i];
+                median += patterns[j][i];
             }
-            median[i] = median[i]/samples;
+            median= median/samples;
             for (int j = 0; j < patterns.length; j++) {
-                standardDeviation[i] += Math.pow(patterns[j][i]-median[i], 2);
+                standardDeviation += Math.pow(patterns[j][i]-median, 2);
             }
-            standardDeviation[i] = Math.sqrt(standardDeviation[i]/samples);
+            standardDeviation = Math.sqrt(standardDeviation/samples);
 
             for(int j = 0; j < patterns.length; j++) {
-                patterns[j][i] = (patterns[j][i] - median[i])/standardDeviation[i];
+                patterns[j][i] = (patterns[j][i] - median)/standardDeviation;
             }
 
         }
@@ -70,7 +92,7 @@ public class DecisionTree {
 
 
 
-    public Node build (double[][] data, Node parent, int children, int deep) {
+    public Node build (double[][] data, Node parent, int children, int deep, boolean binary) {
         Node node = new Node();
         node.parent = parent;
         node.children = new Node[children];
@@ -78,8 +100,16 @@ public class DecisionTree {
         if(data[0].length == 0) {
             System.out.println("Leaf (patterns = 0)");
             node.setLeaf(true);
-            node.setClassLabel((double) defaultLabel);
+            int label = defaultLabel;
+            for(int i = 0; i < distribution.length; i++) {
+                if((double)distribution[i]/(double)numberOfLabels > Math.random() && i != defaultLabel) {
+                    label = i;
+                }
+            }
+            System.out.println("Label: " + label);
+            node.setClassLabel((double) label);
             leafs.add(node);
+
             return node;
         }
         else if(deep <= 0) {
@@ -112,35 +142,70 @@ public class DecisionTree {
         else {
             System.out.println("Node");
             node.setLeaf(false);
-            double maxIG = Double.NEGATIVE_INFINITY, ig;
+            double maxIG = Double.NEGATIVE_INFINITY;
+            double[] ig;
             int maxIGFeature = Integer.MIN_VALUE;
-            for(int i = 0; i < data.length -1; i++) {
-                ig = computeInformationGain(data, i);
-                if(ig > maxIG /*&& !usedFeature.contains(i)*/) {
-                    maxIG = ig;
-                    maxIGFeature = i;
+            int maxIGBounder = Integer.MIN_VALUE;
+
+            if (binary == true) {
+                for(int i = 0; i < data.length -1; i++) {
+                    ig = computeInformationGain(data, i, binary);
+                    for (int j = 0; j < ig.length; j++) {
+                        System.out.print(ig[j] + " ");
+                        if(ig[j] > maxIG && !usedFeature.contains(i)) {
+                            maxIG = ig[j];
+                            maxIGFeature = i;
+                            maxIGBounder = j;
+                        }
+                    }
+                    System.out.println();
+                }
+                usedFeature.add(maxIGFeature);
+
+
+                deep--;
+                node.setDecisionAttribute(maxIGFeature);
+                node.setDecisionValueBound(values[maxIGBounder]);
+
+                double[][][] newData = splitData(data, maxIGFeature, values[maxIGBounder]);
+
+                System.out.println("Selected Feature: " + maxIGFeature + " IG: " + maxIG + " Deep: " + deep);
+                for (int i = 0; i < 2; i++) {
+                    System.out.println("Verteilung: " + newData[i][0].length);
+                }
+
+                node.left = build(newData[0], node, children, deep, binary);
+                node.right = build(newData[1], node, children, deep, binary);
+            }
+            else  {
+                for(int i = 0; i < data.length -1; i++) {
+                    ig = computeInformationGain(data, i, binary);
+                    if(ig[0] > maxIG && !usedFeature.contains(i)) {
+                        maxIG = ig[0];
+                        maxIGFeature = i;
+                    }
+                }
+                usedFeature.add(maxIGFeature);
+
+                deep--;
+                node.setDecisionAttribute(maxIGFeature);
+                node.setDecisionValues(values);
+
+                System.out.println("Selected Feature: " + maxIGFeature + " IG: " + maxIG + " Deep: " + deep);
+                double[][][] newData = splitData(data, maxIGFeature);
+
+                for (int i = 0; i < featureSplit; i++) {
+                    System.out.println("Verteilung: " + newData[i][0].length);
+                }
+
+                for (int i = 0; i < featureSplit; i++) {
+                    node.children[i] = build(newData[i], node, children, deep, binary);
                 }
             }
-            usedFeature.add(maxIGFeature);
-
-            deep--;
-            node.setDecisionAttribute(maxIGFeature);
-            node.setDecisionValues(values);
-
-            System.out.println("Selected Feature: " + maxIGFeature + " IG: " + maxIG + " Deep: " + deep);
-            double[][][] newData = splitData(data, maxIGFeature);
-
-            for (int i = 0; i < featureSplit; i++) {
-                System.out.println("Verteilung: " + newData[i][0].length);
-            }
-
-            for (int i = 0; i < featureSplit; i++) {
-                node.children[i] = build(newData[i], node, children, deep);
-            }
-
             return node;
         }
     }
+
 
 
     private int[] computeClassDistribution(double[][] data) {
@@ -205,35 +270,6 @@ public class DecisionTree {
         return transpose;
     }
 
-    private void quantifyData(double[][] patterns) {
-        quantifyValues = new double[patterns[0].length][featureSplit+1];
-        double max, min;
-        double quantify;
-        for (int i = 0; i < patterns[0].length; i++) {
-            max = Double.NEGATIVE_INFINITY;
-            min = Double.POSITIVE_INFINITY;
-            for (int j = 0; j < patterns.length; j++) {
-                if(patterns[j][i] < min) {
-                    min = patterns[j][i];
-                }
-                if(patterns[j][i] > max) {
-                    max = patterns[j][i];
-                }
-            }
-            quantify = (max - min)/((double)featureSplit);
-            for (int j = 0; j <= featureSplit; j++) {
-                if(j == 0) {
-                    quantifyValues[i][j] = Double.NEGATIVE_INFINITY;
-                }
-                else if (j == featureSplit) {
-                    quantifyValues[i][j] = Double.POSITIVE_INFINITY;
-                }
-                else {
-                    quantifyValues[i][j] = min + quantify*(double)j;
-                }
-            }
-        }
-    }
 
     private double[][] computeSubLabels(double[][] data, int featureNumber) {
         double[][] sortData = sort(data, featureNumber);
@@ -255,16 +291,33 @@ public class DecisionTree {
         return subLabels;
     }
 
-    private double computeInformationGain(double[][] data, int featureNumber) {
+    private double[] computeInformationGain(double[][] data, int featureNumber, boolean binary) {
         double[] labels = data[data.length-1];
         double[][] subLabels;
         double probability;
-
-        double gain = computeEntropy(labels);
+        double[] gain;
         subLabels = computeSubLabels(data, featureNumber);
-        for (int j = 0; j < featureSplit; j++) {
-            probability = ((double)subLabels[j].length)/((double)labels.length);
-            gain -= (probability) * computeEntropy(subLabels[j]);
+
+        if (binary == true) {
+            gain = new double[featureSplit];
+            for (int j = 0; j < featureSplit; j++) {
+                if(subLabels[j].length != 0) {
+                    gain[j] = computeEntropy(labels);
+                    probability = ((double)subLabels[j].length)/((double)labels.length);
+                    gain[j] -= (probability) * computeEntropy(subLabels[j]);
+                }
+
+            }
+
+        }
+        else {
+            gain = new double[1];
+
+            gain[0] = computeEntropy(labels);
+            for (int j = 0; j < featureSplit; j++) {
+                probability = ((double)subLabels[j].length)/((double)labels.length);
+                gain[0] -= (probability) * computeEntropy(subLabels[j]);
+            }
         }
         return gain;
     }
@@ -293,16 +346,36 @@ public class DecisionTree {
         return entropy;
     }
 
+    private double[][][] splitData(double[][] data, int featureNumber, double value) {
+        double[][] dataSort = sort(data, featureNumber);
+        double[][][] splitData = new double[2][][];
+        int distribution;
+        distribution = countHitValue(data[featureNumber], Double.NEGATIVE_INFINITY, value);
+
+        splitData[0] = new double[data.length][distribution];
+        splitData[1] = new double[data.length][data[0].length-distribution];
+
+        for (int i = 0; i < data.length; i++) {
+            for(int j = 0; j < distribution; j++) {
+                splitData[0][i][j] = dataSort[i][j];
+            }
+            for(int j = 0; j < data[0].length-distribution; j++) {
+                splitData[1][i][j] = dataSort[i][j + distribution];
+            }
+        }
+        return splitData;
+    }
+
     private double[][][] splitData(double[][] data, int featureNumber) {
         double[][] dataSort = sort(data, featureNumber);
         double[][][] splitData = new double[featureSplit][][];
         int[] distribution = new int[featureSplit];
         double upperBound, lowerBound;
+
+
         for (int i = 0; i < featureSplit; i++) {
             lowerBound = values[i];
             upperBound = values[i+1];
-            //lowerBound = quantifyValues[featureNumber][i];
-            //upperBound = quantifyValues[featureNumber][i+1];
             distribution[i] = countHitValue(data[featureNumber], lowerBound, upperBound);
         }
         int offset = 0;
@@ -420,16 +493,34 @@ public class DecisionTree {
     public double passTree(double[] pattern) {
         Node node = root;
         double classified, upperBound, lowerBound;
-        double[] values;
+
         int feature;
-        while (node.getLeaf() == false) {
-            feature = node.getDecisionAttribute();
-            values = node.getDecisionValues();
-            for (int i = 0; i < featureSplit; i++) {
-                lowerBound = values[i];
-                upperBound = values[i+1];
-                if(lowerBound <= pattern[feature] && pattern[feature] < upperBound) {
-                    node = node.children[i];
+        if (binary == true) {
+            double value;
+            while (node.getLeaf() == false) {
+                feature = node.getDecisionAttribute();
+                value = node.getDecisionValueBound();
+                if (pattern[feature] < value) {
+                    node = node.left;
+                }
+                else {
+                    node = node.right;
+                }
+            }
+
+        }
+        else {
+            double[] values;
+
+            while (node.getLeaf() == false) {
+                feature = node.getDecisionAttribute();
+                values = node.getDecisionValues();
+                for (int i = 0; i < featureSplit; i++) {
+                    lowerBound = values[i];
+                    upperBound = values[i + 1];
+                    if (lowerBound <= pattern[feature] && pattern[feature] < upperBound) {
+                        node = node.children[i];
+                    }
                 }
             }
         }
