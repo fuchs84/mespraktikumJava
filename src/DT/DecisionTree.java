@@ -1,10 +1,6 @@
 package DT;
 
-import com.sun.tools.doclets.formats.html.SourceToHTMLConverter;
-
-import java.awt.*;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -18,9 +14,8 @@ public class DecisionTree {
     private Node root;
     private List<Integer> usedFeature = new LinkedList<>();
     private List<Node> leafs = new LinkedList<>();
-    private double[][] quantifyValues;
     private int defaultLabel;
-    private int[] distribution;
+    private int[] entireDistribution;
     private int numberOfLabels;
     private double[] values = {Double.NEGATIVE_INFINITY, -3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0, Double.POSITIVE_INFINITY};
 
@@ -31,47 +26,31 @@ public class DecisionTree {
      * @param deep Tiefe des Baums
      * @param binary Binaerbaum
      */
-    public void train (double[][] patterns, double[] labels, int deep, boolean binary) {
+    public void train (double[][] patterns, double[] labels, int deep, boolean binary, int binarySplit) {
         this.binary = binary;
-        patterns = standardization(patterns);
-        featureSplit = values.length - 1;
+        double[][] data;
+        double[][] merge;
 
-
-
-//        int[] distribution;
-//        double upperBound, lowerBound;
-//        for (int h = 0; h < patterns[0].length; h++) {
-//            System.out.println("Feature: " + h);
-//            distribution = new int[featureSplit];
-//            int sum = 0;
-//            for (int i = 0; i < featureSplit; i++) {
-//
-//                upperBound = values[i+1];
-//                lowerBound = values[i];
-//                for (int j = 0; j < patterns.length; j++) {
-//                    if (lowerBound <= patterns[j][h] && patterns[j][h] < upperBound) {
-//                        distribution[i]++;
-//                    }
-//                }
-//                sum += distribution[i];
-//                System.out.println("Verteilung " + i + ": " + distribution[i]);
-//            }
-//            System.out.println("Summe " + sum);
-//        }
-
-
-        double[][] merge = merge(patterns, labels);
-
-        for (int i = 0; i < transpose(merge).length-1; i++) {
-            computeGiniIndex(transpose(merge), i);
+        numberOfLabels = labels.length;
+        if(binary == true) {
+            featureSplit = binarySplit;
+            merge = merge(patterns, labels);
+            data = transpose(merge);
+        }
+        else {
+            patterns = standardization(patterns);
+            featureSplit = values.length - 1;
+            merge = merge(patterns, labels);
+            data = transpose(merge);
         }
 
-        defaultLabel = computeStrongestLabel(labels);
-        distribution = computeClassDistribution(labels);
-        numberOfLabels = labels.length;
 
-        root = build(transpose(merge), null, deep);
+        defaultLabel = computeStrongestLabel(labels);
+        entireDistribution = computeClassDistribution(labels);
+        root = build(data, null, deep);
     }
+
+
 
     /**
      * Methode berechnet von allen Features die Standardisierung
@@ -119,8 +98,8 @@ public class DecisionTree {
             System.out.println("Leaf (patterns = 0)");
             node.setLeaf(true);
             int label = defaultLabel;
-            for(int i = 0; i < distribution.length; i++) {
-                if((double)distribution[i]/(double)numberOfLabels > Math.random() && i != defaultLabel) {
+            for(int i = 0; i < entireDistribution.length; i++) {
+                if((double) entireDistribution[i]/(double)numberOfLabels > Math.random() && i != defaultLabel) {
                     label = i;
                 }
             }
@@ -163,39 +142,75 @@ public class DecisionTree {
 
 
             if (binary == true) {
-                double [] giniIndex;
-                double minGI = Double.POSITIVE_INFINITY;
-                int minGIFeature = Integer.MIN_VALUE;
-                int minGIBound = Integer.MIN_VALUE;
+                double[][] quantifyValues = computeQuantifyValues(data);
+                double [][] entropyImpurity = new double[data.length-1][];
 
-                for(int i = 0; i < data.length -1; i++) {
-                    giniIndex = computeGiniIndex(data, i);
-                    for (int j = 0; j < giniIndex.length; j++) {
+                for(int i = 0; i < entropyImpurity.length; i++) {
+                    entropyImpurity[i] = computeEntropyImpurity(data, quantifyValues, i);
+                }
 
-                        if(giniIndex[j] < minGI) {
-                            minGI = giniIndex[j];
-                            minGIFeature = i;
-                            minGIBound = j;
-                        }
+                double minImpurity = Double.POSITIVE_INFINITY;
+                double minImpurityValue = Double.NEGATIVE_INFINITY;
+                int minImpurityFeature = Integer.MIN_VALUE;
+                for(int i = 0; i < entropyImpurity.length; i++) {
+                    if(minImpurity > entropyImpurity[i][0]) {
+                        minImpurity = entropyImpurity[i][0];
+                        minImpurityValue = entropyImpurity[i][1];
+                        minImpurityFeature = i;
                     }
                 }
-                usedFeature.add(minGIFeature);
-
-                double value = values[minGIBound];
+                usedFeature.add(minImpurityFeature);
 
                 deep--;
-                node.setDecisionAttribute(minGIFeature);
-                node.setDecisionValueBound(value);
+                node.setDecisionValueBound(minImpurityValue);
+                node.setDecisionAttribute(minImpurityFeature);
 
-                double[][][] newData = splitData(data, minGIFeature, value);
+                double[][][] newData = splitData(data, minImpurityFeature, minImpurityValue);
 
-                System.out.println("Selected Feature: " + minGIFeature + " GI: " + minGI  + " Value " + value + " Deep: " + deep);
+                System.out.println("Selected Feature: " + minImpurityFeature + " EI: " + minImpurity  + " Value " + minImpurityValue + " Deep: " + deep);
                 for (int i = 0; i < 2; i++) {
                     System.out.println("Verteilung: " + newData[i][0].length);
                 }
 
+
                 node.left = build(newData[0], node, deep);
                 node.right = build(newData[1], node, deep);
+
+
+
+//                double [] giniIndex;
+//                double minGI = Double.POSITIVE_INFINITY;
+//                int minGIFeature = Integer.MIN_VALUE;
+//                int minGIBound = Integer.MIN_VALUE;
+//
+//                for(int i = 0; i < data.length -1; i++) {
+//                    giniIndex = computeGiniIndex(data, i);
+//                    for (int j = 0; j < giniIndex.length; j++) {
+//
+//                        if(giniIndex[j] < minGI) {
+//                            minGI = giniIndex[j];
+//                            minGIFeature = i;
+//                            minGIBound = j;
+//                        }
+//                    }
+//                }
+//                usedFeature.add(minGIFeature);
+//
+//                double value = values[minGIBound];
+//
+//                deep--;
+//                node.setDecisionAttribute(minGIFeature);
+//                node.setDecisionValueBound(value);
+//
+//                double[][][] newData = splitData(data, minGIFeature, value);
+//
+//                System.out.println("Selected Feature: " + minGIFeature + " GI: " + minGI  + " Value " + value + " Deep: " + deep);
+//                for (int i = 0; i < 2; i++) {
+//                    System.out.println("Verteilung: " + newData[i][0].length);
+//                }
+//
+//                node.left = build(newData[0], node, deep);
+//                node.right = build(newData[1], node, deep);
             }
             else  {
 
@@ -227,6 +242,36 @@ public class DecisionTree {
             }
             return node;
         }
+    }
+
+    private double[][] computeQuantifyValues(double[][] data) {
+        double [][] quantifyValues = new double[data.length-1][featureSplit+1];
+        double max, min, quantify;
+        for(int i = 0; i < data.length-1; i++) {
+            min = Double.POSITIVE_INFINITY;
+            max = Double.NEGATIVE_INFINITY;
+            for(int j = 0; j < data[i].length; j++) {
+                if(data[i][j]  > max) {
+                    max = data[i][j];
+                }
+                if(data[i][j] < min) {
+                    min = data[i][j];
+                }
+            }
+            quantify = (max - min)/((double) featureSplit);
+            for(int j = 0; j < featureSplit+1; j++) {
+                if(j == 0) {
+                    quantifyValues[i][j] = Double.NEGATIVE_INFINITY;
+                }
+                else if(j == featureSplit) {
+                    quantifyValues[i][j] = Double.POSITIVE_INFINITY;
+                }
+                else {
+                    quantifyValues[i][j] = min + (quantify*(double)j);
+                }
+            }
+        }
+        return quantifyValues;
     }
 
     /**
@@ -340,13 +385,52 @@ public class DecisionTree {
         return subLabels;
     }
 
+    private double[][] computeSubLabels(double[][] data, int featureNumber, double[] values) {
+        double[][] sortData = sort(data, featureNumber);
+        double[][] subLabels = new double[featureSplit][];
+        double upperBound, lowerBound;
+        int count;
+        lowerBound = values[0];
+
+        for (int i = 0; i < featureSplit; i++) {
+            upperBound = values[i+1];
+            count = countHitValue(data[featureNumber],lowerBound, upperBound);
+            subLabels[i] = new double[count];
+            for (int j = 0; j < subLabels[i].length; j++) {
+                subLabels[i][j] = sortData[sortData.length-1][j];
+
+            }
+        }
+        return subLabels;
+    }
+
+    private double[] computeEntropyImpurity(double[][] data, double[][] quantifyValues, int featureNumber) {
+        double[] impurityAndValue = new double[2];
+        double[][] subLabels = computeSubLabels(data, featureNumber, quantifyValues[featureNumber]);
+        double[] impurity = new double[featureSplit];
+
+        for (int i = 0; i < featureSplit; i++) {
+            impurity[i] = computeEntropy(subLabels[i]);
+        }
+        double minImpurity = Double.POSITIVE_INFINITY;
+        double value = quantifyValues[featureNumber][0];
+        for (int i = 0; i < featureSplit; i++) {
+            if(minImpurity > impurity[i]) {
+                minImpurity = impurity[i];
+                value = quantifyValues[featureNumber][i+1];
+            }
+        }
+        impurityAndValue[0] = minImpurity;
+        impurityAndValue[1] = value;
+        return impurityAndValue;
+    }
+
     /**
      * Methode berechnet den Gini Index eines ausgewaehlten Features (Binaerbaum)
      * @param data Train-Daten (Patterns + Labels)
      * @param featureNumber ausgewaehltes Feature
      * @return Array mit Gini Indexes
      */
-
     private double[] computeGiniIndex(double[][] data, int featureNumber) {
         int numberOfLabels = data[0].length;
         double[][] subLabels = computeSubLabels(data, featureNumber);
@@ -380,7 +464,7 @@ public class DecisionTree {
         double[][] subLabels;
         double probability;
         double gain;
-        subLabels = computeSubLabels(data, featureNumber);
+        subLabels = computeSubLabels(data, featureNumber, values);
         gain = computeEntropy(labels);
         for (int j = 0; j < featureSplit; j++) {
             probability = ((double)subLabels[j].length)/((double)labels.length);
