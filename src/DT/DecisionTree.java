@@ -19,32 +19,33 @@ public class DecisionTree {
     private int numberOfLabels;
     private double[] values = {Double.NEGATIVE_INFINITY, -3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0, Double.POSITIVE_INFINITY};
 
-    /**
-     * Methode trainiert den Decision Tree
-     * @param patterns Train-Patterns
-     * @param labels Train-Labels
-     * @param deep Tiefe des Baums
-     * @param binary Binaerbaum
-     */
-    public void train (double[][] patterns, double[] labels, int deep, boolean binary, int binarySplit) {
-        this.binary = binary;
-        double[][] data;
+
+
+    public void train (double[][] patterns, double[] labels, int deep) {
+        binary = false;
+        patterns = standardization(patterns);
         double[][] merge;
+        double[][] data;
+
+        merge = merger(patterns, labels);
+        data = transpose(merge);
+
 
         numberOfLabels = labels.length;
-        if(binary == true) {
-            featureSplit = binarySplit;
-            merge = merge(patterns, labels);
-            data = transpose(merge);
-        }
-        else {
-            patterns = standardization(patterns);
-            featureSplit = values.length - 1;
-            merge = merge(patterns, labels);
-            data = transpose(merge);
-        }
+        featureSplit = values.length - 1;
+        defaultLabel = computeStrongestLabel(labels);
+        entireDistribution = computeClassDistribution(labels);
+        root = build(data, null, deep);
 
+    }
+    public void train (double[][] patterns, double[] labels, int deep, int binarySplit) {
+        binary = true;
 
+        double[][] merge = merger(patterns, labels);;
+        double[][] data = transpose(merge);
+
+        numberOfLabels = labels.length;
+        featureSplit = binarySplit;
         defaultLabel = computeStrongestLabel(labels);
         entireDistribution = computeClassDistribution(labels);
         root = build(data, null, deep);
@@ -58,7 +59,6 @@ public class DecisionTree {
      * @return standardisierte Train-Patterns
      */
     private double[][] standardization(double[][] patterns) {
-
         double samples = (double)patterns.length;
         double median;
         double standardDeviation;
@@ -89,11 +89,10 @@ public class DecisionTree {
      * @param deep Tiefe des Baums
      * @return Knoten oder Blatt
      */
+
     public Node build (double[][] data, Node parent, int deep) {
         Node node = new Node();
         node.parent = parent;
-
-
         if(data[0].length == 0) {
             System.out.println("Leaf (patterns = 0)");
             node.setLeaf(true);
@@ -140,10 +139,10 @@ public class DecisionTree {
             System.out.println("Node");
             node.setLeaf(false);
 
-
             if (binary == true) {
                 double[][] quantifyValues = computeQuantifyValues(data);
                 double [][] entropyImpurity = new double[data.length-1][];
+
 
                 for(int i = 0; i < entropyImpurity.length; i++) {
                     entropyImpurity[i] = computeEntropyImpurity(data, quantifyValues, i);
@@ -175,46 +174,8 @@ public class DecisionTree {
 
                 node.left = build(newData[0], node, deep);
                 node.right = build(newData[1], node, deep);
-
-
-
-//                double [] giniIndex;
-//                double minGI = Double.POSITIVE_INFINITY;
-//                int minGIFeature = Integer.MIN_VALUE;
-//                int minGIBound = Integer.MIN_VALUE;
-//
-//                for(int i = 0; i < data.length -1; i++) {
-//                    giniIndex = computeGiniIndex(data, i);
-//                    for (int j = 0; j < giniIndex.length; j++) {
-//
-//                        if(giniIndex[j] < minGI) {
-//                            minGI = giniIndex[j];
-//                            minGIFeature = i;
-//                            minGIBound = j;
-//                        }
-//                    }
-//                }
-//                usedFeature.add(minGIFeature);
-//
-//                double value = values[minGIBound];
-//
-//                deep--;
-//                node.setDecisionAttribute(minGIFeature);
-//                node.setDecisionValueBound(value);
-//
-//                double[][][] newData = splitData(data, minGIFeature, value);
-//
-//                System.out.println("Selected Feature: " + minGIFeature + " GI: " + minGI  + " Value " + value + " Deep: " + deep);
-//                for (int i = 0; i < 2; i++) {
-//                    System.out.println("Verteilung: " + newData[i][0].length);
-//                }
-//
-//                node.left = build(newData[0], node, deep);
-//                node.right = build(newData[1], node, deep);
             }
             else  {
-
-
                 double maxIG = Double.NEGATIVE_INFINITY;
                 int maxIGFeature = Integer.MIN_VALUE;
                 double informationGain;
@@ -242,6 +203,32 @@ public class DecisionTree {
             }
             return node;
         }
+    }
+
+    private double[][] computeCovarianceMatrix(double[][] data) {
+        double samples = data[0].length;
+        double[][] covariance = new double[data.length-1][];
+        double median;
+        for(int i = 0; i < data.length-1; i++) {
+            median = 0;
+            for(int j = 0; j < data[0].length; j++) {
+               median += data[i][j];
+            }
+            median = median/samples;
+            for(int j = 0; j < data[0].length; j++) {
+                data[i][j] = data[i][j] - median;
+            }
+        }
+        for(int j = 0; j < data.length-1; j++) {
+            covariance[j] = new double[j+1];
+            for (int k = 0; k <= j; k++) {
+                for(int l = 0; l < data[0].length; l++) {
+                    covariance[j][k] += data[j][l]*data[k][l];
+                }
+                covariance[j][k] = covariance[j][k]/samples;
+            }
+        }
+        return covariance;
     }
 
     private double[][] computeQuantifyValues(double[][] data) {
@@ -310,7 +297,7 @@ public class DecisionTree {
      * @param labels Train-Labels
      * @return Train-Daten (Patterns + Labels)
      */
-    private double[][] merge(double[][] patterns, double[] labels) {
+    private double[][] merger(double[][] patterns, double[] labels) {
         if (patterns.length != labels.length) {
             System.out.println("Patterns und Labels passen nicht zusammen!");
             return null;
@@ -404,6 +391,7 @@ public class DecisionTree {
         return subLabels;
     }
 
+
     private double[] computeEntropyImpurity(double[][] data, double[][] quantifyValues, int featureNumber) {
         double[] impurityAndValue = new double[2];
         double[][] subLabels = computeSubLabels(data, featureNumber, quantifyValues[featureNumber]);
@@ -425,33 +413,6 @@ public class DecisionTree {
         return impurityAndValue;
     }
 
-    /**
-     * Methode berechnet den Gini Index eines ausgewaehlten Features (Binaerbaum)
-     * @param data Train-Daten (Patterns + Labels)
-     * @param featureNumber ausgewaehltes Feature
-     * @return Array mit Gini Indexes
-     */
-    private double[] computeGiniIndex(double[][] data, int featureNumber) {
-        int numberOfLabels = data[0].length;
-        double[][] subLabels = computeSubLabels(data, featureNumber);
-        double[] giniIndex = new double[featureSplit];
-        double probability;
-
-        System.out.println("Feature: " + featureNumber);
-        for (int i = 0; i < featureSplit; i++) {
-            giniIndex[i] = 1.0;
-
-
-            probability = ((double)subLabels[i].length)/((double)numberOfLabels);
-            if(probability < 1.0) {
-                giniIndex[i] -= Math.pow(probability, 2.0);
-            }
-            System.out.print(" Sub " + subLabels[i].length + " GI " + giniIndex[i]);
-        }
-        System.out.println();
-
-        return giniIndex;
-    }
 
     /**
      * Methode berechnet den Information Gain eines ausgewaehlten Features
@@ -464,7 +425,7 @@ public class DecisionTree {
         double[][] subLabels;
         double probability;
         double gain;
-        subLabels = computeSubLabels(data, featureNumber, values);
+        subLabels = computeSubLabels(data, featureNumber);
         gain = computeEntropy(labels);
         for (int j = 0; j < featureSplit; j++) {
             probability = ((double)subLabels[j].length)/((double)labels.length);
