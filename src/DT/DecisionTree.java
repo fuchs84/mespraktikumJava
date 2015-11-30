@@ -46,7 +46,11 @@ public class DecisionTree {
         return patterns;
     }
 
-
+    /**
+     * Methode berechnet die Kovarianzmatrix
+     * @param data Train-Daten (Patterns + Labels)
+     * @return Kovarianzmatrix
+     */
     protected double[][] computeCovarianceMatrix(double[][] data) {
         double samples = data[0].length;
         double[][] covariance = new double[data.length-1][];
@@ -73,6 +77,11 @@ public class DecisionTree {
         return covariance;
     }
 
+    /**
+     * Methode berechnet die quantifizierten Grenzwerte
+     * @param data Train-Daten (Patterns + Labels)
+     * @return quantifizierten Grenzwerte der einzelnen Features
+     */
     protected double[][] computeQuantifyValues(double[][] data) {
         double [][] quantifyValues = new double[data.length-1][featureSplit+1];
         double max, min, quantify;
@@ -192,7 +201,7 @@ public class DecisionTree {
 
 
     /**
-     * Methode zur Berechnung der Entropy
+     * Methode berechnet die Entropie
      * @param labels Labels/Sublabels auf den die Entropy berechnet werden soll
      * @return gibt den Entropywert zurueck
      */
@@ -216,9 +225,9 @@ public class DecisionTree {
     }
 
     /**
-     * Methode sucht das maximale Label, dass in Labels/Sublabels vorkomm
-     * @param labels Labels/Sublabels auf den das maximale Label gesucht wird
-     * @return maximale Label in Labels/Sublabels
+     * Methode sucht das maximale Label
+     * @param labels Train-Labels
+     * @return maximale Label
      */
     protected int computeMaxLabel(double[] labels) {
         int maxLabel = 0;
@@ -256,10 +265,11 @@ public class DecisionTree {
     }
 
     /**
-     * Methode zaehlt die Sampels, bis zur oberen Grenze, die den Wert erfuellen
+     * Methode zaehlt die Sampels zwischen zwei Grenzen, die den Wert erfuellen
      * @param selectedFeature ausgewaeltes Feature
+     * @param lowerBound untere Grenze
      * @param upperBound obere Grenze
-     * @return Anzahl der Sampels, die die Bedingung erfuellen
+     * @return Anzahl der Samples, die die Bedingung erfuellen
      */
     protected int countHitValue(double [] selectedFeature, double lowerBound, double upperBound) {
         int count = 0;
@@ -272,9 +282,9 @@ public class DecisionTree {
     }
 
     /**
-     * Methode ueberprueft, ob ein Konten/Subset pure ist
-     * @param labels Train-Label-Subset eines Knotens
-     * @return true, wenn der Knoten/Subset pure ist, andernfalls false
+     * Methode ueberprueft, ob ein Konten pure ist
+     * @param labels Train-Label eines Knotens
+     * @return true, wenn der Knoten pure ist, andernfalls false
      */
     protected boolean isNodePure(double[] labels) {
         for (int i = 0; i < labels.length; i++) {

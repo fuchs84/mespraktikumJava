@@ -12,7 +12,7 @@ public class MultiSplitNode extends DT.Node{
 
 
     /**
-     * Verknüpfungen der Knoten untereinander
+     * Verknuepfungen der Knoten untereinander
      */
     public MultiSplitNode[] children;
 

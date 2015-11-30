@@ -11,6 +11,11 @@ public class LinearMachineDT extends DecisionTree{
     private int numberOfClasses;
     private int numberOfFeatures;
 
+    /**
+     * Methode trainiert den Decision Tree
+     * @param patterns Train-Patterns
+     * @param labels Train-Labels
+     */
     public void train(double[][] patterns, double[] labels){
         patterns = extendPatterns(patterns);
 
@@ -22,6 +27,11 @@ public class LinearMachineDT extends DecisionTree{
         learn(patterns, labels);
     }
 
+    /**
+     * Methode passt die einzelnen Gewichte der Knoten an
+     * @param patterns Train-Patterns
+     * @param labels Train-Labels
+     */
     private void learn(double[][] patterns, double[] labels) {
         double B = 2.0;
         double a = 0.99, b = 0.0005;
@@ -60,6 +70,14 @@ public class LinearMachineDT extends DecisionTree{
         }
     }
 
+    /**
+     * Methode berechnet den Korrekturfaktor
+     * @param B Train-Konstante
+     * @param weightI Gewichte des I-Knotens
+     * @param weightJ Gewichte des J-Knotens
+     * @param instance Instanz nach der korrigiert wird
+     * @return Korrekturfaktor
+     */
     private double computeC(double B, double[] weightI, double[] weightJ, double[] instance) {
         double c;
         double k = 0.0;
@@ -73,7 +91,12 @@ public class LinearMachineDT extends DecisionTree{
         return c;
     }
 
-
+    /**
+     * Methode ueberprueft die Knoten wie gut die Gewichte angepasst sind
+     * @param patterns Train-Patterns
+     * @param labels Train-Labels
+     * @return prozentualer Anteil an richtig klassifizierten Labels
+     */
     private double checkNodes(double[][] patterns, double[] labels) {
         int numberOfWrongs = 0, numberOfRights;
         double percent = 0.0;
@@ -97,6 +120,12 @@ public class LinearMachineDT extends DecisionTree{
         return percent;
     }
 
+    /**
+     * Methode berechnet den Entscheidungswert eines Koten und Instanz
+     * @param instance Instanz
+     * @param label Label (bzw. Knoten)
+     * @return Entscheidungswert
+     */
     private double computeDecision(double [] instance, double label) {
         double decision = 0.0;
         double [] weight = linearMachineNodes[(int)label].getWeights();
@@ -106,6 +135,11 @@ public class LinearMachineDT extends DecisionTree{
         return decision;
     }
 
+    /**
+     * Methode erweitert die Patterns um eine Konstante (Bias)
+     * @param patterns Patterns
+     * @return erweiterte Patterns
+     */
     private double[][] extendPatterns(double[][] patterns) {
         double[][] extendedPatterns = new double[patterns.length][patterns[0].length+1];
         for(int i = 0; i < extendedPatterns.length; i++) {
@@ -121,6 +155,9 @@ public class LinearMachineDT extends DecisionTree{
         return extendedPatterns;
     }
 
+    /**
+     * Methode initialisiert die Knoten
+     */
     private void initNodes() {
         linearMachineNodes = new LinearMachineNode[numberOfClasses+1];
         for (int i = 0; i < linearMachineNodes.length; i++) {
@@ -130,12 +167,20 @@ public class LinearMachineDT extends DecisionTree{
         }
     }
 
+    /**
+     * Methode berechnet einen Zufallswert zur Trainingsauswahl
+     * @return Zufallswert
+     */
     private int random() {
         int random = (int) (Math.random()*(numberOfInstances));
         return random;
     }
 
-
+    /**
+     * Methode geht durch den Baum und liefert die jeweilige Klasse zurueck
+     * @param instance klassifizierende Instanz
+     * @return klassifiziertes Label
+     */
     private double passTree (double[] instance) {
         double classified = 0.0;
         double decision;
@@ -150,6 +195,11 @@ public class LinearMachineDT extends DecisionTree{
         return classified;
     }
 
+    /**
+     * Methode klassifiziert die uebergebenen Patterns
+     * @param patterns Patterns die klassifiziert Werden
+     * @return double-Array mit den jeweiligen Labels
+     */
     public double[] classify(double[][] patterns) {
         patterns = extendPatterns(patterns);
         double[] labels = new double[patterns.length];

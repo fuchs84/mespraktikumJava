@@ -12,8 +12,14 @@ public class BinarySplitDT extends DecisionTree{
     private BinarySplitNode root;
     protected List<BinarySplitNode> leafs = new LinkedList<>();
 
+    /**
+     * Methode trainiert den Decision Tree
+     * @param patterns Train-Patterns
+     * @param labels Train-Labels
+     * @param deep maximale Tiefe des Baums
+     * @param featureSplit Anzahl der Aufteilungen der einzelnen Features (Quantisierung)
+     */
     public void train (double[][] patterns, double[] labels, int deep, int featureSplit) {
-
         double[][] merge = merger(patterns, labels);;
         double[][] data = transpose(merge);
 
@@ -31,7 +37,6 @@ public class BinarySplitDT extends DecisionTree{
      * @param deep Tiefe des Baums
      * @return Knoten oder Blatt
      */
-
     public BinarySplitNode build (double[][] data, BinarySplitNode parent, int deep) {
         BinarySplitNode binarySplitNode = new BinarySplitNode();
         binarySplitNode.parent = parent;
@@ -120,6 +125,13 @@ public class BinarySplitDT extends DecisionTree{
         return binarySplitNode;
     }
 
+    /**
+     * Methode berechnet die Sublabels eines ausgewaehlten Features und Wert
+     * @param data Train-Daten (Patterns + Labels)
+     * @param featureNumber ausgewaehltes Feature
+     * @param values ausgewaehlter Wert
+     * @return Sublabels
+     */
     private double[][] computeSubLabels(double[][] data, int featureNumber, double[] values) {
         double[][] sortData = sort(data, featureNumber);
         double[][] subLabels = new double[featureSplit][];
@@ -139,7 +151,13 @@ public class BinarySplitDT extends DecisionTree{
         return subLabels;
     }
 
-
+    /**
+     * Methode berechnet die minimale Entropie-Unreinheit eines ausgewaehlten Features
+     * @param data Train-Daten (Patterns + Labels)
+     * @param quantifyValues quantifizierte Grenzwerte
+     * @param featureNumber ausgewaehltes Feature
+     * @return Entropie-Unreinheit und den dazugehörtigen Wert
+     */
     private double[] computeEntropyImpurity(double[][] data, double[][] quantifyValues, int featureNumber) {
         double[] impurityAndValue = new double[2];
         double[][] subLabels = computeSubLabels(data, featureNumber, quantifyValues[featureNumber]);
@@ -194,7 +212,6 @@ public class BinarySplitDT extends DecisionTree{
      * @return double-Array mit den jeweiligen Labels
      */
     public double[] classify(double[][] patterns) {
-        //patterns = standardization(patterns);
         double[] labels = new double[patterns.length];
         for (int i = 0; i < patterns.length; i++) {
             labels[i] = passTree(patterns[i]);
@@ -203,8 +220,8 @@ public class BinarySplitDT extends DecisionTree{
     }
 
     /**
-     * Methode geht durch den Baum durch und liefert die jeweilige Klasse zurück wenn es auf ein Blatt trifft
-     * @param pattern zu klassifizierendes Pattern
+     * Methode geht durch den Baum durch und liefert die jeweilige Klasse zurueck wenn es auf ein Blatt trifft
+     * @param pattern klassifizierendes Pattern
      * @return klassifiziertes Label
      */
     public double passTree(double[] pattern) {

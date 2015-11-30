@@ -14,7 +14,12 @@ public class MultiSplitDT extends DecisionTree {
     private List<MultiSplitNode> leafs = new LinkedList<>();
     private double[] values = {Double.NEGATIVE_INFINITY, -3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0, Double.POSITIVE_INFINITY};
 
-
+    /**
+     * Methode trainiert den Decision Tree
+     * @param patterns Train-Patterns
+     * @param labels Train-Labels
+     * @param deep maximale Tiefe des Baums
+     */
     public void train (double[][] patterns, double[] labels, int deep) {
         patterns = standardization(patterns);
         double[][] merge;
@@ -37,7 +42,6 @@ public class MultiSplitDT extends DecisionTree {
      * @param deep Tiefe des Baums
      * @return Knoten oder Blatt
      */
-
     public MultiSplitNode build (double[][] data, MultiSplitNode parent, int deep) {
         MultiSplitNode node = new MultiSplitNode();
         node.parent = parent;
@@ -145,6 +149,12 @@ public class MultiSplitDT extends DecisionTree {
         return splitData;
     }
 
+    /**
+     * Methode berechnet den Information-Gain eines ausgewaehlten Features
+     * @param data Train-Daten (Patterns + Labels)
+     * @param featureNumber ausgewaehltes Feature
+     * @return Information-Gain
+     */
     private double computeInformationGain(double[][] data, int featureNumber) {
         double[] labels = data[data.length-1];
         double[][] subLabels;
@@ -208,8 +218,8 @@ public class MultiSplitDT extends DecisionTree {
     }
 
     /**
-     * Methode geht durch den Baum durch und liefert die jeweilige Klasse zurück wenn es auf ein Blatt trifft
-     * @param pattern zu klassifizierendes Pattern
+     * Methode geht durch den Baum durch und liefert die jeweilige Klasse zurueck wenn es auf ein Blatt trifft
+     * @param pattern klassifizierendes Pattern
      * @return klassifiziertes Label
      */
     public double passTree(double[] pattern) {

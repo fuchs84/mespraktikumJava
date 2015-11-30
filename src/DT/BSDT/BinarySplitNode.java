@@ -6,12 +6,12 @@ package DT.BSDT;
 public class BinarySplitNode extends DT.Node{
 
     /**
-     * Attribute des Kontens
+     * Attribute des Knotens
      */
     private double decisionValueBound;
 
     /**
-     * Verknüpfungen der Knoten untereinander
+     * Verknuepfungen der Knoten untereinander
      */
     public BinarySplitNode left;
     public BinarySplitNode right;

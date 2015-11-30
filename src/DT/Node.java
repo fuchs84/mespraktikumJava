@@ -13,7 +13,7 @@ public class Node {
     protected double classLabel = Double.NEGATIVE_INFINITY;
 
     /**
-     * Verknüpfungen der Knoten untereinander
+     * Verknuepfungen der Knoten untereinander
      */
     public Node parent;
 
@@ -32,7 +32,6 @@ public class Node {
     public void setLeaf(boolean leaf) {
         this.leaf = leaf;
     }
-
     public int getDecisionAttribute() {
         return decisionAttribute;
     }
