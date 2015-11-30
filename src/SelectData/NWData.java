@@ -10,11 +10,14 @@ import java.io.IOException;
  */
 public class NWData {
 
-
+    /**
+     * Methode liest eine CSV-Datei ein
+     * @param path Pfad der CSV-Datei
+     * @return
+     */
     public Data readCSV(String path) {
-        double[][] pattern = new double[0][0];
-        double[] label = new double[0];
-        double max = Double.NEGATIVE_INFINITY;
+        double[][] pattern = null;
+        double[] label = null;
 
         FileReader fr = null;
         try {
@@ -52,9 +55,6 @@ public class NWData {
                 temp = line.split("\t");
                 for(int j = 2; j < columns; j++) {
                     pattern[i][j-2] = Double.parseDouble(temp[j]);
-                    if(pattern[i][j-2] > max) {
-                        max = pattern[i][j-2];
-                    }
                 }
                 label[i] = Double.parseDouble(temp[1]);
             }
@@ -63,6 +63,6 @@ public class NWData {
             e.printStackTrace();
         }
 
-        return new Data(label, pattern, max);
+        return new Data(label, pattern);
     }
 }

@@ -33,39 +33,20 @@ public class Matthias {
         decisionTree = new LinearMachineDT();
 
         //Best Result: 2 (10)
-        decisionTree.train(trainPattern, trainLabel);
+        //decisionTree.train(trainPattern, trainLabel);
 
         confusionMatrix = new ConfusionMatrix();
 
-        double[] classify = decisionTree.classify(testPattern);
+        double[] classify; //= decisionTree.classify(testPattern);
+
+        //confusionMatrix.computeConfusionMatrix(classify, testLabel);
+        //confusionMatrix.computeTrueFalse(classify, testLabel);
+
+        int[] hiddenLayer = {50, 20};
+        mlp = new MLP();
+        mlp.train(trainPattern, trainLabel,hiddenLayer, 0.005, 1000);
+        classify = mlp.classify(testPattern);
 
         confusionMatrix.computeConfusionMatrix(classify, testLabel);
-        confusionMatrix.computeTrueFalse(classify, testLabel);
-
-//        int nInput = pattern[0].length;
-//        int nOutput = label[0].length;
-//        int[] nHiddenLayer =  {20};
-//        mlp = new MLP(nInput, nOutput, nHiddenLayer);
-//        mlp.printWeights();
-//        mlp.train(data.getScaledPattern(data.trainPattern), data.getLabelForMLP(data.trainLabel), 0.005, 1000);
-//        mlp.printWeights();
-//
-//        int falseClassified = 0;
-//        int rightCalssified = 0;
-//        double [] testResult = new double[testPattern.length];
-//        for (int h = 0; h < testPattern.length; h++) {
-//            double[] test = mlp.passNetwork(testPattern[h]);
-//            testResult[h] = mlp.winner(test);
-//            if((int)testLabel[h] == testResult[h]) {
-//                rightCalssified++;
-//            } else {
-//                falseClassified++;
-//            }
-//        }
-//        System.out.println("Richtig: " + rightCalssified);
-//        System.out.println("Falsch: " + falseClassified);
-//
-//        confusionMatrix = new ConfusionMatrix();
-//        confusionMatrix.computeConfusionMatrix(testLabel, testResult);
     }
 }

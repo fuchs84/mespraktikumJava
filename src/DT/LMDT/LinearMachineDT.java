@@ -34,7 +34,7 @@ public class LinearMachineDT extends DecisionTree{
      */
     private void learn(double[][] patterns, double[] labels) {
         double B = 2.0;
-        double a = 0.99, b = 0.0005;
+        double a = 0.99, b = 0.00005;
         double[] instance;
         double labelClass;
         double[] weightI, weightJ;
@@ -62,7 +62,7 @@ public class LinearMachineDT extends DecisionTree{
                     }
                 }
                 linearMachineNodes[(int)labelClass].setWeights(weightI);
-                //B = a*B-b;
+                B = a*B-b;
 
                 patterns[random][patterns[0].length-1] = 0.0;
             }

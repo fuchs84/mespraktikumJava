@@ -27,8 +27,8 @@ public class Sebastian {
         double[][] testdata = datatest.getPattern();
         double[] testllabel = datatest.getLabel();
         validation = new Crossvalidation();
-        ArrayList<double[][]> patternlist = Crossvalidation.crossvalidate(classifier.dataMatrix,classifier.datalabel,10,10);
-        ArrayList<double[]> labellist = Crossvalidation.crossvalidatelabel(classifier.dataMatrix,classifier.datalabel,10,10);
+        ArrayList<double[][]> patternlist = Crossvalidation.crossvalidate(classifier.dataMatrix,classifier.datalabel,10);
+        ArrayList<double[]> labellist = Crossvalidation.crossvalidatelabel(classifier.dataMatrix,classifier.datalabel,10);
         for (int i = 0; i < 6 ; i++) {
             Bayes.addTrainData(patternlist.get(i),labellist.get(i));
         }

@@ -6,11 +6,7 @@ import java.util.ArrayList;
  */
 public class Crossvalidation {
 
-    public Crossvalidation(){
-
-    }
-
-    public static ArrayList crossvalidate(double [][] inputpattern, double [] inputlabel, int splits, int testsplit){
+    public static ArrayList crossvalidate(double [][] inputpattern, double [] inputlabel, int splits){
         ArrayList patternlist = new ArrayList();
         ArrayList labelist = new ArrayList();
 
@@ -26,15 +22,14 @@ public class Crossvalidation {
                    pattern[j][l] = inputpattern[k+j][l];
                 }
                 label[j]=inputlabel[k+j];
-
-
             }
             patternlist.add(pattern);
             labelist.add(label);
         }
         return patternlist;
     }
-    public static ArrayList crossvalidatelabel(double [][] inputpattern, double [] inputlabel, int splits, int testsplit){
+
+    public static ArrayList crossvalidatelabel(double [][] inputpattern, double [] inputlabel, int splits){
         ArrayList patternlist = new ArrayList();
         ArrayList labelist = new ArrayList();
 
@@ -49,15 +44,12 @@ public class Crossvalidation {
                 }
                 label[j]=inputlabel[k+j];
 
-
             }
             patternlist.add(pattern);
             labelist.add(label);
         }
         return labelist;
     }
-
-
 }
 
 

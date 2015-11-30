@@ -24,14 +24,16 @@ public class MLP {
     private List<Double> desiredOutputDistribution = new LinkedList<Double>();
 
     /**
-     *
-     * @param nInput Anzahl der Inputs
-     * @param nOutput Anzahl der Outputs
-     * @param nHidden Anzahl der Zwischenschichten (als Array)
+     * Methode trainiert das Netzwerk
+     * @param patterns Train-Patterns
+     * @param labels Train-Labels
+     * @param nHidden Anzahl der zwischen Schichten
+     * @param learningRate Lernrate (zwischen 0.0 und 1.0) legt die Lernintensitaet fest
+     * @param maxIteration Ist die Maximale Anzahl von Wiederholungen auf den Train-Daten
      */
-    public MLP(int nInput, int nOutput, int[] nHidden) {
-        this.nInput = nInput;
-        this.nOutput = nOutput;
+    public void train(double[][] patterns, double[] labels, int[] nHidden, double learningRate, long maxIteration) {
+        nInput = patterns[0].length;
+        nOutput = computeMaxLabel(labels);
         this.nHidden = nHidden;
 
         hiddenLayer = nHidden.length;
@@ -45,7 +47,38 @@ public class MLP {
         }
 
         initWeights();
+
+
+        patterns = normalisation(patterns);
+        double[][] extendedLabels = extendedLabels(labels);
+        calculateDistribution(extendedLabels);
+        double previousEntireError = Double.POSITIVE_INFINITY;
+        int index = 0;
+        if (patterns.length == extendedLabels.length) {
+            do {
+                if (index > 0) {
+                    previousEntireError = entireError;
+                }
+                actualOutput = new double[extendedLabels.length][extendedLabels[0].length];
+                desiredOutput = extendedLabels;
+
+                for (int i = 0; i < patterns.length; i++) {
+
+                    actualOutput[i] = passNetwork(patterns[i]);
+                    backPropagation(extendedLabels[i], learningRate);
+                }
+
+                entireError = 0.0;
+                calculateEntireError();
+                System.out.println("Entire Error: " + entireError);
+                index++;
+            } while (previousEntireError >= entireError && index < maxIteration) ;
+            System.out.println("Iterations: " + index);
+        } else{
+            System.out.println("Pattern und Labels passen nicht zusammen");
+        }
     }
+
 
     /**
      * Methode initialisiert die Gewichte für die Verbindungen
@@ -120,55 +153,77 @@ public class MLP {
         }
     }
 
+
+
     /**
-     * Methode trainiert das Netzwerk
-     * @param pattern Train-Patterns
-     * @param label Train-Labels
-     * @param learningRate Lernrate (zwischen 0.0 und 1.0) legt die Lernintensität fest
-     * @param maxIteration Ist die Maximale Anzahl von Wiederholungen auf den Train-Daten
+     * Methode sucht das maximale Label
+     * @param labels Train-Labels
+     * @return maximale Label
      */
-    public void train(double[][] pattern, double[][] label, double learningRate, long maxIteration) {
-        calculateDistribution(label);
-        double previousEntireError = Double.POSITIVE_INFINITY;
-        int index = 0;
-        if (pattern.length == label.length) {
-            do {
-                if (index > 0) {
-                    previousEntireError = entireError;
-                }
-                actualOutput = new double[label.length][label[0].length];
-                desiredOutput = label;
-
-                for (int i = 0; i < pattern.length; i++) {
-
-                    actualOutput[i] = passNetwork(pattern[i]);
-                    backPropagation(label[i], learningRate);
-                }
-
-            entireError = 0.0;
-            calculateEntireError();
-            System.out.println("Entire Error: " + entireError);
-            index++;
-            } while (previousEntireError >= entireError && index < maxIteration) ;
-        System.out.println("Iterations: " + index);
-        } else{
-            System.out.println("Pattern und Labels passen nicht zusammen");
+    protected int computeMaxLabel(double[] labels) {
+        int maxLabel = 0;
+        int numberOfLabels = labels.length;
+        for (int i = 0; i < numberOfLabels; i++) {
+            if (maxLabel < (int) labels[i]) {
+                maxLabel = (int) (labels[i]);
+            }
         }
-
+        return maxLabel;
     }
 
     /**
-     * Methode klassifiziert die übergebenen Patterns
-     * @param pattern Patterns die klassifiziert werden.
-     * @return gibt die Labelklassen zurück
+     * Methode erweitert die Labels für den Multilayer-Perzeptron-Klassifizierer
+     * @param labels Train-Labels
+     * @return erweiterte Labels
      */
-    public double[][] classify(double[][] pattern) {
-        double [][] classified = new double[pattern.length][nOutput];
+    private double[][] extendedLabels(double[] labels) {
+        int length = computeMaxLabel(labels), value;
+        double[][] extendedLabels = new double[labels.length][length];
 
-        for(int i = 0; i < pattern.length; i++) {
-            classified[i] = passNetwork(pattern[i]);
+        for (int i = 0; i < labels.length; i ++) {
+            value = (int) labels[i];
+            extendedLabels[i][value-1] = 1.0;
         }
-        return classified;
+        return extendedLabels;
+    }
+
+    /**
+     * Methode normalisiert die Patterns
+     * @param patterns Patterns
+     * @return normalisierte Patterns
+     */
+    private double[][] normalisation(double[][] patterns) {
+        double[][] newPatterns = new double[patterns.length][patterns[0].length];
+        double max;
+        for(int i = 0; i < patterns[0].length; i++) {
+            max = Double.NEGATIVE_INFINITY;
+            for(int j = 0; j < patterns.length; j++) {
+                if(max < patterns[j][i]) {
+                    max = patterns[j][i];
+                }
+            }
+            for(int j = 0; j < patterns.length; j++) {
+               newPatterns[j][i] = patterns[j][i]/max;
+            }
+        }
+        return newPatterns;
+    }
+
+    /**
+     * Methode klassifiziert die uebergebenen Patterns
+     * @param patterns Patterns die klassifiziert Werden
+     * @return double-Array mit den jeweiligen Labels
+     */
+    public double[] classify(double[][] patterns) {
+        patterns = normalisation(patterns);
+        double [] labels = new double[patterns.length];
+
+
+        for(int i = 0; i < patterns.length; i++) {
+            double[] output = passNetwork(patterns[i]);
+            labels [i] = (double) winner(output);
+        }
+        return labels;
     }
 
     /**
@@ -176,13 +231,13 @@ public class MLP {
      * @param classified Ausgangschicht
      * @return Perzeptron mit dem hoechsten Wert
      */
-    public int winner(double[] classified) {
+    private int winner(double[] classified) {
         double max = Double.NEGATIVE_INFINITY;
         int index = 0;
         for(int i = 0; i < classified.length; i++) {
             if (classified[i] > max) {
                 max = classified[i];
-                index = i + 1;
+                index = i+1;
             }
         }
         return index;
@@ -193,7 +248,7 @@ public class MLP {
      * @param trainInput Eingabeschicht
      * @return Ausgabeschicht
      */
-    public double[] passNetwork(double[] trainInput) {
+    private double[] passNetwork(double[] trainInput) {
 
         input[0] = 1.0;
         for(int i=0; i<nInput; i++) {
@@ -245,7 +300,7 @@ public class MLP {
     }
 
     /**
-     * Methode für die Aktivierungsfunktion für die Einzelnen Perzeptronen
+     * Methode für die Aktivierungsfunktion für die einzelnen Perzeptronen
      * @param function ausgewaehlte Funktion
      * @param value zu berechnender Wert
      * @return Ergebnis der Berechnung
