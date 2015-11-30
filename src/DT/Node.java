@@ -8,23 +8,13 @@ public class Node {
     /**
      * Attribute des Kontens
      */
-    private int decisionAttribute = Integer.MIN_VALUE;
-    private double decisionValueBound;
-
-    private double[] decisionValues;
-    private boolean leaf = false;
-    private double classLabel = Double.NEGATIVE_INFINITY;
-
+    protected int decisionAttribute = Integer.MIN_VALUE;
+    protected boolean leaf = false;
+    protected double classLabel = Double.NEGATIVE_INFINITY;
 
     /**
      * Verknüpfungen der Knoten untereinander
      */
-
-
-
-    public Node left;
-    public Node right;
-    public Node [] children;
     public Node parent;
 
     /**
@@ -42,23 +32,11 @@ public class Node {
     public void setLeaf(boolean leaf) {
         this.leaf = leaf;
     }
-    public double getDecisionValueBound() {
-        return decisionValueBound;
-    }
-    public void setDecisionValueBound(double decisionValueBound) {
-        this.decisionValueBound = decisionValueBound;
-    }
+
     public int getDecisionAttribute() {
         return decisionAttribute;
     }
     public void setDecisionAttribute(int decisionAttribute) {
         this.decisionAttribute = decisionAttribute;
-    }
-
-    public double[] getDecisionValues() {
-        return decisionValues;
-    }
-    public void setDecisionValues(double[] decisionValues) {
-        this.decisionValues = decisionValues;
     }
 }

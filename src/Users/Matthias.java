@@ -1,20 +1,20 @@
 package Users;
 
+import DT.BSDT.BinarySplitDT;
 import DT.DecisionTree;
+import DT.LMDT.LinearMachineDT;
+import DT.MSDT.MultiSplitDT;
 import MLP.MLP;
 import SelectData.Data;
 import SelectData.NWData;
 import ShowData.ConfusionMatrix;
-
-import java.util.Arrays;
-import java.util.Comparator;
 
 /**
  * Created by MatthiasFuchs on 12.11.15.
  */
 public class Matthias {
     private MLP mlp;
-    private DecisionTree decisionTree;
+    private LinearMachineDT decisionTree;
 
     private NWData nwData;
     private Data data;
@@ -30,10 +30,10 @@ public class Matthias {
         double[][] testPattern = data.testPattern;
         double[] testLabel = data.testLabel;
 
-        decisionTree = new DecisionTree();
+        decisionTree = new LinearMachineDT();
 
         //Best Result: 2 (10)
-        decisionTree.train(trainPattern, trainLabel, 2, 2);
+        decisionTree.train(trainPattern, trainLabel);
 
         confusionMatrix = new ConfusionMatrix();
 
