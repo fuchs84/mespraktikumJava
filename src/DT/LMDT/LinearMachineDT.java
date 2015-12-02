@@ -2,6 +2,8 @@ package DT.LMDT;
 
 import DT.DecisionTree;
 
+import java.util.Collections;
+
 /**
  * Created by MatthiasFuchs on 26.11.15.
  */
@@ -11,6 +13,7 @@ public class LinearMachineDT extends DecisionTree{
     private int numberOfClasses;
     private int numberOfFeatures;
 
+
     /**
      * Methode trainiert den Decision Tree
      * @param patterns Train-Patterns
@@ -18,11 +21,12 @@ public class LinearMachineDT extends DecisionTree{
      */
     public void train(double[][] patterns, double[] labels){
         patterns = extendPatterns(patterns);
-
-        numberOfClasses = computeMaxLabel(labels);
+        searchUsedLabels(labels);
+        Collections.sort(usedLabels);
+        numberOfClasses = usedLabels.size();
         numberOfFeatures = patterns[0].length;
         numberOfInstances = patterns.length;
-
+        entireDistribution = computeClassDistribution(labels);
         initNodes();
         learn(patterns, labels);
     }
@@ -40,6 +44,7 @@ public class LinearMachineDT extends DecisionTree{
         double[] weightI, weightJ;
         double correction;
         int random;
+        int nodeNumber;
         while (B > 0.001 && checkNodes(patterns, labels) < 0.99) {
 
             random = random();
@@ -48,9 +53,10 @@ public class LinearMachineDT extends DecisionTree{
             labelClass = labels[random];
             if(passTree(instance) != labelClass && patterns[random][patterns[0].length-1] == 1.0) {
                 System.out.println(checkNodes(patterns, labels));
-                weightI = linearMachineNodes[(int)labelClass].getWeights();
-                for(int j = 0; j <= numberOfClasses; j++) {
-                    if (j != (int)labelClass) {
+                nodeNumber = searchNodeNumber(labelClass);
+                weightI = linearMachineNodes[nodeNumber].getWeights();
+                for(int j = 0; j < numberOfClasses; j++) {
+                    if (j != nodeNumber) {
                         weightJ = linearMachineNodes[j].getWeights();
                         correction = computeC(B, weightI, weightJ, instance);
                         for(int k = 0; k < weightI.length; k++) {
@@ -61,12 +67,11 @@ public class LinearMachineDT extends DecisionTree{
 
                     }
                 }
-                linearMachineNodes[(int)labelClass].setWeights(weightI);
+                linearMachineNodes[nodeNumber].setWeights(weightI);
                 B = a*B-b;
 
                 patterns[random][patterns[0].length-1] = 0.0;
             }
-
         }
     }
 
@@ -101,11 +106,13 @@ public class LinearMachineDT extends DecisionTree{
         int numberOfWrongs = 0, numberOfRights;
         double percent = 0.0;
         double nodeDecision, neighbourDecision;
+        int nodeNumber = -1;
         for(int i = 0; i < patterns.length; i++) {
-            nodeDecision = computeDecision(patterns[i], labels[i]);
-            for(int j = 0; j < linearMachineNodes.length; j++) {
-                if((double)j != labels[i]) {
-                    neighbourDecision = computeDecision(patterns[i], (double)j);
+            nodeNumber = searchNodeNumber(labels[i]);
+            nodeDecision = computeDecision(patterns[i], nodeNumber);
+            for(int j = 0; j < numberOfClasses; j++) {
+                if(j != nodeNumber) {
+                    neighbourDecision = computeDecision(patterns[i], j);
                 } else {
                     break;
                 }
@@ -120,15 +127,20 @@ public class LinearMachineDT extends DecisionTree{
         return percent;
     }
 
-    /**
-     * Methode berechnet den Entscheidungswert eines Koten und Instanz
-     * @param instance Instanz
-     * @param label Label (bzw. Knoten)
-     * @return Entscheidungswert
-     */
-    private double computeDecision(double [] instance, double label) {
+    private int searchNodeNumber(double label) {
+        for (int i = 0; i < numberOfClasses; i++) {
+            if(label == linearMachineNodes[i].getClassLabel()) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+
+    private double computeDecision(double [] instance, int nodeNumber) {
         double decision = 0.0;
-        double [] weight = linearMachineNodes[(int)label].getWeights();
+
+        double [] weight = linearMachineNodes[nodeNumber].getWeights();
         for (int i = 0; i < weight.length; i++) {
             decision += weight[i]*instance[i];
         }
@@ -159,10 +171,10 @@ public class LinearMachineDT extends DecisionTree{
      * Methode initialisiert die Knoten
      */
     private void initNodes() {
-        linearMachineNodes = new LinearMachineNode[numberOfClasses+1];
+        linearMachineNodes = new LinearMachineNode[numberOfClasses];
         for (int i = 0; i < linearMachineNodes.length; i++) {
             linearMachineNodes[i] = new LinearMachineNode();
-            linearMachineNodes[i].setClassLabel((double)i);
+            linearMachineNodes[i].setClassLabel(usedLabels.get(i));
             linearMachineNodes[i].initWeights(numberOfFeatures);
         }
     }
@@ -185,11 +197,11 @@ public class LinearMachineDT extends DecisionTree{
         double classified = 0.0;
         double decision;
         double maxDecision = Double.NEGATIVE_INFINITY;
-        for(int i = 0; i <= numberOfClasses; i++) {
-            decision = computeDecision(instance, (double)i);
+        for(int i = 0; i < numberOfClasses; i++) {
+            decision = computeDecision(instance, i);
             if(maxDecision < decision) {
                 maxDecision = decision;
-                classified = (double)i;
+                classified = linearMachineNodes[i].getClassLabel();
             }
         }
         return classified;

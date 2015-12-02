@@ -32,7 +32,7 @@ public class ConfusionMatrix {
         for (int h = 0; h < desiredOutput.length; h++){
             tempDesired = (int) desiredOutput[h];
             tempOutput = (int) output[h];
-            //System.out.println("Desired: " + tempDesired + " Output: " + tempOutput);
+            System.out.println("Desired: " + tempDesired + " Output: " + tempOutput);
             matrix[tempDesired-1][tempOutput-1]++;
         }
 

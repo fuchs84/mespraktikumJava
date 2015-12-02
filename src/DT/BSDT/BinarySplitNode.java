@@ -1,9 +1,12 @@
 package DT.BSDT;
 
+
+import DT.Node;
+
 /**
  * Created by MatthiasFuchs on 13.11.15.
  */
-public class BinarySplitNode extends DT.Node{
+public class BinarySplitNode extends Node {
 
     /**
      * Attribute des Knotens

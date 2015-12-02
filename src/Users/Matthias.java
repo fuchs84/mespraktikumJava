@@ -3,6 +3,7 @@ package Users;
 import DT.BSDT.BinarySplitDT;
 import DT.DecisionTree;
 import DT.LMDT.LinearMachineDT;
+import DT.LMDT.LinearMachineNode;
 import DT.MSDT.MultiSplitDT;
 import MLP.MLP;
 import SelectData.Data;
@@ -15,6 +16,7 @@ import ShowData.ConfusionMatrix;
 public class Matthias {
     private MLP mlp;
     private LinearMachineDT decisionTree;
+
 
     private NWData nwData;
     private Data data;
@@ -33,19 +35,15 @@ public class Matthias {
         decisionTree = new LinearMachineDT();
 
         //Best Result: 2 (10)
-        //decisionTree.train(trainPattern, trainLabel);
+        decisionTree.train(trainPattern, trainLabel);
 
         confusionMatrix = new ConfusionMatrix();
 
-        double[] classify; //= decisionTree.classify(testPattern);
+        double[] classify = decisionTree.classify(testPattern);
 
         //confusionMatrix.computeConfusionMatrix(classify, testLabel);
         //confusionMatrix.computeTrueFalse(classify, testLabel);
 
-        int[] hiddenLayer = {50, 20};
-        mlp = new MLP();
-        mlp.train(trainPattern, trainLabel,hiddenLayer, 0.005, 1000);
-        classify = mlp.classify(testPattern);
 
         confusionMatrix.computeConfusionMatrix(classify, testLabel);
     }

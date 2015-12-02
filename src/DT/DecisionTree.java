@@ -1,6 +1,7 @@
 package DT;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -13,7 +14,7 @@ public class DecisionTree {
     protected List<Integer> usedFeature = new LinkedList<>();
     protected int defaultLabel;
     protected int[] entireDistribution;
-
+    protected List<Double> usedLabels = new LinkedList<>();
     protected int numberOfInstances;
 
 
@@ -48,33 +49,41 @@ public class DecisionTree {
 
     /**
      * Methode berechnet die Kovarianzmatrix
-     * @param data Train-Daten (Patterns + Labels)
+     * @param patterns Train-Patterns
      * @return Kovarianzmatrix
      */
-    protected double[][] computeCovarianceMatrix(double[][] data) {
-        double samples = data[0].length;
-        double[][] covariance = new double[data.length-1][];
+    protected double[][] computeCovarianceMatrix(double[][] patterns) {
+        double samples = patterns.length;
+        double[][] covariance = new double[patterns[0].length][];
         double median;
-        for(int i = 0; i < data.length-1; i++) {
+        for(int i = 0; i < patterns[0].length; i++) {
             median = 0;
-            for(int j = 0; j < data[0].length; j++) {
-               median += data[i][j];
+            for(int j = 0; j < patterns.length; j++) {
+               median += patterns[j][i];
             }
             median = median/samples;
-            for(int j = 0; j < data[0].length; j++) {
-                data[i][j] = data[i][j] - median;
+            for(int j = 0; j < patterns.length; j++) {
+                patterns[j][i] = patterns[j][i] - median;
             }
         }
-        for(int j = 0; j < data.length-1; j++) {
+        for(int j = 0; j < patterns[0].length; j++) {
             covariance[j] = new double[j+1];
             for (int k = 0; k <= j; k++) {
-                for(int l = 0; l < data[0].length; l++) {
-                    covariance[j][k] += data[j][l]*data[k][l];
+                for(int l = 0; l < patterns.length; l++) {
+                    covariance[j][k] += patterns[l][j]*patterns[l][k];
                 }
                 covariance[j][k] = covariance[j][k]/samples;
             }
         }
         return covariance;
+    }
+
+    protected void searchUsedLabels(double[] labels) {
+        for(int i = 0; i < labels.length; i++) {
+            if(!(usedLabels.contains(labels[i]))) {
+                usedLabels.add(labels[i]);
+            }
+        }
     }
 
     /**
@@ -172,12 +181,15 @@ public class DecisionTree {
      * @param featureNumber Ausgewaehltes Feature
      * @return sortierte Train-Daten (Patterns + Labels)
      */
-    protected double[][] sort(double[][] data, int featureNumber) {
+    protected double[][] sort(double[][] data, final int featureNumber) {
         double[][] transpose = transpose(data);
-        Arrays.sort(transpose, (double1, double2) -> {
-            Double numOfKeys1 = double1[featureNumber];
-            Double numOfKeys2 = double2[featureNumber];
-            return numOfKeys1.compareTo(numOfKeys2);
+        Arrays.sort(transpose, new Comparator<double[]>() {
+            @Override
+            public int compare(double[] double1, double[] double2) {
+                Double numOfKeys1 = double1[featureNumber];
+                Double numOfKeys2 = double2[featureNumber];
+                return numOfKeys1.compareTo(numOfKeys2);
+            }
         });
         data = transpose(transpose);
         return data;
