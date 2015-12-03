@@ -15,7 +15,7 @@ import ShowData.ConfusionMatrix;
  */
 public class Matthias {
     private MLP mlp;
-    private LinearMachineDT decisionTree;
+    private MultiSplitDT decisionTree;
 
 
     private NWData nwData;
@@ -32,19 +32,22 @@ public class Matthias {
         double[][] testPattern = data.testPattern;
         double[] testLabel = data.testLabel;
 
-        decisionTree = new LinearMachineDT();
+        //decisionTree = new MultiSplitDT();
+
+        mlp = new MLP();
+        mlp.splitData(trainPattern, 10);
 
         //Best Result: 2 (10)
-        decisionTree.train(trainPattern, trainLabel);
+        //decisionTree.train(trainPattern, trainLabel, 2);
 
-        confusionMatrix = new ConfusionMatrix();
+        //confusionMatrix = new ConfusionMatrix();
 
-        double[] classify = decisionTree.classify(testPattern);
+        //double[] classify = decisionTree.classify(testPattern);
 
         //confusionMatrix.computeConfusionMatrix(classify, testLabel);
         //confusionMatrix.computeTrueFalse(classify, testLabel);
 
 
-        confusionMatrix.computeConfusionMatrix(classify, testLabel);
+        //confusionMatrix.computeConfusionMatrix(classify, testLabel);
     }
 }

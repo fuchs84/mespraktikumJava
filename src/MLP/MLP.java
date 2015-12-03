@@ -21,6 +21,9 @@ public class MLP {
     private double[][] desiredOutput;
     private double  entireError = 0.0;
 
+    private double[][][] patternsSplit;
+    private double[][][] labelsSplit;
+
     private List<Double> desiredOutputDistribution = new LinkedList<Double>();
 
     /**
@@ -31,7 +34,7 @@ public class MLP {
      * @param learningRate Lernrate (zwischen 0.0 und 1.0) legt die Lernintensitaet fest
      * @param maxIteration Ist die Maximale Anzahl von Wiederholungen auf den Train-Daten
      */
-    public void train(double[][] patterns, double[] labels, int[] nHidden, double learningRate, long maxIteration) {
+    public void train(double[][] patterns, double[] labels, int[] nHidden, double learningRate, long maxIteration, int split) {
         nInput = patterns[0].length;
         nOutput = computeMaxLabel(labels);
         this.nHidden = nHidden;
@@ -51,6 +54,8 @@ public class MLP {
 
         patterns = normalisation(patterns);
         double[][] extendedLabels = extendedLabels(labels);
+
+
         calculateDistribution(extendedLabels);
         double previousEntireError = Double.POSITIVE_INFINITY;
         int index = 0;
@@ -77,6 +82,28 @@ public class MLP {
         } else{
             System.out.println("Pattern und Labels passen nicht zusammen");
         }
+    }
+
+    public double[][][] splitData(double[][] data, int split) {
+        double[][][] splitData = new double[split][][];
+        int distribution = data.length/split;
+
+        int offset = 0;
+        for (int i = 0; i < split-1; i++) {
+            splitData[i] = new double[distribution][];
+
+            for (int j = 0; j < distribution; j++) {
+                splitData[i][j] = data[j + offset];
+
+            }
+            offset += distribution;
+        }
+        splitData[split-1] = new double[data.length-offset][];
+        for (int i = 0; i < data.length - offset; i++) {
+            splitData[split-1][i] = data[i + offset];
+
+        }
+        return splitData;
     }
 
 

@@ -57,7 +57,6 @@ public class MultiSplitDT extends DecisionTree {
             System.out.println("Label: " + label);
             node.setClassLabel((double) label);
             leafs.add(node);
-
             return node;
         }
         else if(deep <= 0) {
