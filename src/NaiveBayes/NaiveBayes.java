@@ -29,11 +29,9 @@ public class NaiveBayes {
     }
 
     /**
-     * Fuegt dem Klassifizierer die Daten hinzu die er lernen soll
-     * @param pattern die feature Matrix der Daten die hinzugefuegt werden
-     * @param label die label zur gegebenen feature Matrix
+     * Berechnet die Varianzen und Means der gegebenen Features innerhalb der einzelnen Klassen
      */
-    public void addTrainData(double[][] pattern, double[] label){
+    public void train(double[][] pattern, double[] label) {
         double [][] temppattern = trainMatrix;
         double [] templabel = trainlabel;
         trainMatrix = new double[trainMatrix.length+pattern.length][pattern[0].length];
@@ -53,14 +51,6 @@ public class NaiveBayes {
             }
 
         }
-
-
-    }
-
-    /**
-     * Berechnet die Varianzen und Means der gegebenen Features innerhalb der einzelnen Klassen
-     */
-    public void train() {
 
         Integer[] numbers = new Integer[trainlabel.length];
         for (int i = 0; i < trainlabel.length; i++) {
@@ -114,7 +104,7 @@ public class NaiveBayes {
      * @param testdata Matrix von Testdaten
      * @return Array der vorhergesagten Label
      */
-    public double[] classifyalldata(double[][] testdata ){
+    public double[] classify(double[][] testdata ){
         double[] predictedlabel = new double[testdata.length];
         for (int i = 0; i < predictedlabel.length; i++) {
             predictedlabel[i] = classifygaussian(testdata[i]);

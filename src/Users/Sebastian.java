@@ -29,16 +29,6 @@ public class Sebastian {
         validation = new Crossvalidation();
         ArrayList<double[][]> patternlist = Crossvalidation.crossvalidate(classifier.dataMatrix,classifier.datalabel,10);
         ArrayList<double[]> labellist = Crossvalidation.crossvalidatelabel(classifier.dataMatrix,classifier.datalabel,10);
-        for (int i = 0; i < 6 ; i++) {
-            Bayes.addTrainData(patternlist.get(i),labellist.get(i));
-        }
-
-        Bayes.train();
-
-        double[] classifiedlabel = Bayes.classifyalldata(patternlist.get(9));
-
-        ConfusionMatrix mat = new ConfusionMatrix();
-        mat.computeConfusionMatrix(classifiedlabel,labellist.get(9));
 
     }
 

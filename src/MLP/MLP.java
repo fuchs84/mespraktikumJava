@@ -34,7 +34,7 @@ public class MLP {
      * @param learningRate Lernrate (zwischen 0.0 und 1.0) legt die Lernintensitaet fest
      * @param maxIteration Ist die Maximale Anzahl von Wiederholungen auf den Train-Daten
      */
-    public void train(double[][] patterns, double[] labels, int[] nHidden, double learningRate, long maxIteration, int split) {
+    public void train(double[][] patterns, double[] labels, int[] nHidden, double learningRate, long maxIteration) {
         nInput = patterns[0].length;
         nOutput = computeMaxLabel(labels);
         this.nHidden = nHidden;

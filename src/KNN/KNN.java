@@ -30,8 +30,8 @@ public class KNN {
     }
 
     //Klassifiziert set aus Trainingsdaten
-    public int[] classifyalldata( int KNNS, double[][] testdata,String distancecalculation){
-        int[] predictedlabel = new int[testdata.length];
+    public double[] classify( int KNNS, double[][] testdata,String distancecalculation){
+        double [] predictedlabel = new double[testdata.length];
         for (int i = 0; i < predictedlabel.length; i++) {
             predictedlabel[i] = classify(KNNS, testdata[i],distancecalculation);
 
@@ -65,7 +65,7 @@ public class KNN {
     public void optimizetrainset(){
         int lengthminus = 0;
         for (int i = 0; i < trainMatrix.length; i++) {
-            int predicted = classify(7,trainMatrix[i],"Manhatten");
+            int predicted = classify(7,trainMatrix[i],"Manhattan");
             if(predicted != (int) trainlabel[i]){
                 lengthminus +=1;
             }
@@ -76,7 +76,7 @@ public class KNN {
         System.out.println(temppattern.length);
         int runindex = 0;
         for (int j = 0; j < trainMatrix.length; j++) {
-            int predicted = classify(7,trainMatrix[j],"Manhatten");
+            int predicted = classify(7,trainMatrix[j],"Manhattan");
             if(predicted == (int) trainlabel[j]){
                 templabel[runindex] = trainlabel[j];
                 for (int i = 0; i < temppattern[0].length; i++) {
@@ -106,7 +106,7 @@ public class KNN {
                 }
                 distance[i] = Math.sqrt(squaresum);
             }
-        }else if (distancecalculation.equals("Manhatten")){
+        }else if (distancecalculation.equals("Manhattan")){
                 for (int i = 0; i < label.length; i++){
                     double squaresum = 0;
                     for (int j = 0; j < testdata.length-abzugelemente; j++) {
