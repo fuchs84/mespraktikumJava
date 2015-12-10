@@ -11,10 +11,11 @@ public class Node {
     protected int decisionAttribute = Integer.MIN_VALUE;
     protected boolean leaf = false;
     protected double classLabel = Double.NEGATIVE_INFINITY;
-
+    public int deep;
     /**
      * Verknuepfungen der Knoten untereinander
      */
+
     public Node parent;
 
     /**

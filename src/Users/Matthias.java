@@ -1,26 +1,27 @@
 package Users;
 
 import DT.BSDT.BinarySplitDT;
-import DT.DecisionTree;
-import DT.LMDT.LinearMachineDT;
-import DT.LMDT.LinearMachineNode;
 import DT.MSDT.MultiSplitDT;
+import DT.MSDT.MultiSplitNode;
 import KNN.KNN;
 import MLP.MLP;
 import NaiveBayes.NaiveBayes;
 import SelectData.Data;
 import SelectData.NWData;
 import ShowData.ConfusionMatrix;
-import com.sun.tools.doclets.formats.html.SourceToHTMLConverter;
+
+import java.util.ArrayList;
 
 /**
  * Created by MatthiasFuchs on 12.11.15.
  */
 public class Matthias {
     private MLP mlp;
-    private MultiSplitDT decisionTree;
+    private BinarySplitDT decisionTree;
+
     private KNN knn;
     private NaiveBayes nb;
+
 
 
     private NWData nwData;
@@ -37,29 +38,19 @@ public class Matthias {
         double[][] testPattern = data.testPattern;
         double[] testLabel = data.testLabel;
 
-        //decisionTree = new MultiSplitDT();
 
-        long startTime = System.currentTimeMillis();
-        nb = new NaiveBayes();
-        nb.train(trainPattern, trainLabel);
+        decisionTree = new BinarySplitDT();
+        //decisionTree.train(trainPattern, trainLabel, 20, 3);
 
-        long stopTime = System.currentTimeMillis();
-        System.out.println("Train-Time: " + (stopTime-startTime));
+        //decisionTree.saveData();
+        decisionTree.loadData();
 
-        startTime = System.currentTimeMillis();
-
-        double[] classify = nb.classify(testPattern);
-
-        stopTime = System.currentTimeMillis();
-        System.out.println("Test-Time: " + (stopTime-startTime));
+        System.out.println("classify");
+        double[] classify = decisionTree.classify(testPattern);
 
         confusionMatrix = new ConfusionMatrix();
         confusionMatrix.computeConfusionMatrix(classify, testLabel);
 
 
-
-
-
-        //confusionMatrix.computeConfusionMatrix(classify, testLabel);
     }
 }

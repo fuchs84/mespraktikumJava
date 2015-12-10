@@ -1,6 +1,10 @@
 package DT.BSDT;
 
 import DT.DecisionTree;
+import DT.MSDT.MultiSplitNode;
+
+import java.io.*;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -10,7 +14,9 @@ import java.util.List;
 public class BinarySplitDT extends DecisionTree{
 
     private BinarySplitNode root;
-    protected List<BinarySplitNode> leafs = new LinkedList<>();
+    private List<BinarySplitNode> nodes = new LinkedList<>();
+    private int count;
+    private int deep;
 
     /**
      * Methode trainiert den Decision Tree
@@ -22,12 +28,13 @@ public class BinarySplitDT extends DecisionTree{
     public void train (double[][] patterns, double[] labels, int deep, int featureSplit) {
         double[][] merge = merger(patterns, labels);;
         double[][] data = transpose(merge);
+        this.deep = deep;
 
         numberOfInstances = labels.length;
         this.featureSplit = featureSplit;
         defaultLabel = computeStrongestLabel(labels);
         entireDistribution = computeClassDistribution(labels);
-        root = build(data, null, deep);
+        root = build(data, null, 0);
     }
 
     /**
@@ -51,11 +58,11 @@ public class BinarySplitDT extends DecisionTree{
             }
             System.out.println("Label: " + label);
             binarySplitNode.setClassLabel((double) label);
-            leafs.add(binarySplitNode);
+            nodes.add(binarySplitNode);
 
             return binarySplitNode;
         }
-        else if(deep <= 0) {
+        else if(this.deep <= deep) {
             System.out.println("Leaf (deep = 0)");
             int[] distribution = computeClassDistribution(data);
             int maxDistribution = Integer.MIN_VALUE;
@@ -71,7 +78,7 @@ public class BinarySplitDT extends DecisionTree{
             binarySplitNode.setClassLabel(maxLabel);
             binarySplitNode.left = null;
             binarySplitNode.right = null;
-            leafs.add(binarySplitNode);
+            nodes.add(binarySplitNode);
             return binarySplitNode;
         }
         else if(isNodePure(data[data.length-1])) {
@@ -81,7 +88,7 @@ public class BinarySplitDT extends DecisionTree{
             binarySplitNode.setClassLabel(data[data.length - 1][0]);
             binarySplitNode.left = null;
             binarySplitNode.right = null;
-            leafs.add(binarySplitNode);
+            nodes.add(binarySplitNode);
             return binarySplitNode;
         }
         else {
@@ -107,10 +114,10 @@ public class BinarySplitDT extends DecisionTree{
             }
             usedFeature.add(minImpurityFeature);
 
-            deep--;
+
             binarySplitNode.setDecisionValueBound(minImpurityValue);
             binarySplitNode.setDecisionAttribute(minImpurityFeature);
-
+            deep++;
             double[][][] newData = splitData(data, minImpurityFeature, minImpurityValue);
 
             System.out.println("Selected Feature: " + minImpurityFeature + " EI: " + minImpurity  + " Value " + minImpurityValue + " Deep: " + deep);
@@ -121,6 +128,7 @@ public class BinarySplitDT extends DecisionTree{
 
             binarySplitNode.left = build(newData[0], binarySplitNode, deep);
             binarySplitNode.right = build(newData[1], binarySplitNode, deep);
+            nodes.add(binarySplitNode);
         }
         return binarySplitNode;
     }
@@ -242,6 +250,84 @@ public class BinarySplitDT extends DecisionTree{
         }
         classified = binarySplitNode.getClassLabel();
         return classified;
+    }
+
+    public void saveData() {
+        try {
+            FileWriter fw = new FileWriter("binarySplitDT.csv");
+            save(root, fw);
+
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void save(BinarySplitNode node, FileWriter fw) {
+        try {
+            if(node.getLeaf() == false) {
+                fw.append(Boolean.toString(false));
+                fw.append(",");
+                fw.append(Integer.toString(node.getDecisionAttribute()));
+                fw.append(",");
+                fw.append(Integer.toString(node.deep));
+                fw.append(",");
+                fw.append(Double.toString(node.getDecisionValueBound()));
+                fw.append(",");
+                fw.append("\n");
+                save(node.left, fw);
+                save(node.right, fw);
+            }
+            else {
+                fw.append(Boolean.toString(true));
+                fw.append(",");
+                fw.append(Double.toString(node.getClassLabel()));
+                fw.append(",");
+                fw.append(Integer.toString(node.deep));
+                fw.append("\n");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void loadData() {
+        try {
+            BufferedReader br = new BufferedReader(new FileReader("binarySplitDT.csv"));
+            ArrayList<String> data = new ArrayList<>();
+            String line;
+            while ((line = br.readLine()) != null) {
+                data.add(line);
+            }
+            count = -1;
+            this.root = buildWithLoadedData(null, data);
+            br.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private BinarySplitNode buildWithLoadedData(BinarySplitNode parent, ArrayList<String> data) {
+
+        count++;
+        BinarySplitNode node = new BinarySplitNode();
+        node.parent = parent;
+        String[] parts = data.get(count).split(",");
+        if(parts[0].equals("false")) {
+            node.setLeaf(false);
+            node.setDecisionAttribute(Integer.parseInt(parts[1]));
+            node.setDecisionValueBound(Double.parseDouble(parts[3]));
+            node.left = buildWithLoadedData(node, data);
+            node.right = buildWithLoadedData(node, data);
+        } else {
+            node.setLeaf(true);
+            node.setClassLabel(Double.parseDouble(parts[1]));
+            node.left = null;
+            node.right = null;
+        }
+        return node;
     }
 
 }

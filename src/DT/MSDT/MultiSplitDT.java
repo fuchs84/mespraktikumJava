@@ -2,6 +2,8 @@ package DT.MSDT;
 
 import DT.DecisionTree;
 
+import java.io.*;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -11,8 +13,15 @@ import java.util.List;
 public class MultiSplitDT extends DecisionTree {
 
     private MultiSplitNode root;
-    private List<MultiSplitNode> leafs = new LinkedList<>();
+    private ArrayList<MultiSplitNode> nodes = new ArrayList<>();
+
     private double[] values = {Double.NEGATIVE_INFINITY, -3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0, Double.POSITIVE_INFINITY};
+    private int count;
+
+
+    public MultiSplitDT() {
+        featureSplit = values.length - 1;
+    }
 
     /**
      * Methode trainiert den Decision Tree
@@ -21,6 +30,7 @@ public class MultiSplitDT extends DecisionTree {
      * @param deep maximale Tiefe des Baums
      */
     public void train (double[][] patterns, double[] labels, int deep) {
+        this.deep = deep;
         patterns = standardization(patterns);
         double[][] merge;
         double[][] data;
@@ -29,10 +39,9 @@ public class MultiSplitDT extends DecisionTree {
         data = transpose(merge);
 
         numberOfInstances = labels.length;
-        featureSplit = values.length - 1;
         defaultLabel = computeStrongestLabel(labels);
         entireDistribution = computeClassDistribution(labels);
-        root = build(data, null, deep);
+        root = build(data, null, 0);
     }
 
     /**
@@ -48,6 +57,7 @@ public class MultiSplitDT extends DecisionTree {
         if(data[0].length == 0) {
             System.out.println("Leaf (patterns = 0)");
             node.setLeaf(true);
+            node.deep = deep;
             int label = defaultLabel;
             for(int i = 0; i < entireDistribution.length; i++) {
                 if((double) entireDistribution[i]/(double) numberOfInstances > Math.random() && i != defaultLabel) {
@@ -56,10 +66,10 @@ public class MultiSplitDT extends DecisionTree {
             }
             System.out.println("Label: " + label);
             node.setClassLabel((double) label);
-            leafs.add(node);
+            nodes.add(node);
             return node;
         }
-        else if(deep <= 0) {
+        else if(this.deep <= deep) {
             System.out.println("Leaf (deep = 0)");
             int[] distribution = computeClassDistribution(data);
             int maxDistribution = Integer.MIN_VALUE;
@@ -72,22 +82,25 @@ public class MultiSplitDT extends DecisionTree {
                 }
             }
             node.setLeaf(true);
+            node.deep = deep;
             node.setClassLabel(maxLabel);
             node.children = null;
-            leafs.add(node);
+            nodes.add(node);
             return node;
         }
         else if(isNodePure(data[data.length-1])) {
             System.out.println("Leaf (pure)");
 
             node.setLeaf(true);
-            node.setClassLabel(data[data.length-1][0]);
+            node.deep = deep;
+            node.setClassLabel(data[data.length - 1][0]);
             node.children = null;
-            leafs.add(node);
+            nodes.add(node);
             return node;
         }
         else {
             node.setLeaf(false);
+            node.deep = deep;
             double maxIG = Double.NEGATIVE_INFINITY;
             int maxIGFeature = Integer.MIN_VALUE;
             double informationGain;
@@ -100,7 +113,7 @@ public class MultiSplitDT extends DecisionTree {
             }
             usedFeature.add(maxIGFeature);
 
-            deep--;
+
             node.setDecisionAttribute(maxIGFeature);
             node.setDecisionValues(values);
 
@@ -108,10 +121,11 @@ public class MultiSplitDT extends DecisionTree {
             double[][][] newData = splitData(data, maxIGFeature);
 
             node.children = new MultiSplitNode[featureSplit];
-
+            deep++;
             for (int i = 0; i < featureSplit; i++) {
                 node.children[i] = build(newData[i], node, deep);
             }
+            nodes.add(node);
             return node;
         }
     }
@@ -193,12 +207,24 @@ public class MultiSplitDT extends DecisionTree {
         return subLabels;
     }
 
+    public ArrayList<MultiSplitNode> getNodes() {
+        return nodes;
+    }
+
+    public void setNodes(ArrayList<MultiSplitNode> nodes) {
+        this.nodes = nodes;
+    }
+
     /**
      * Getter-Methode für Root-Knoten
      * @return Root Knoten
      */
     public MultiSplitNode getRoot() {
         return root;
+    }
+
+    public void setRoot(MultiSplitNode root) {
+        this.root = root;
     }
 
 
@@ -241,5 +267,91 @@ public class MultiSplitDT extends DecisionTree {
         }
         classified = node.getClassLabel();
         return classified;
+    }
+
+    public void saveData() {
+        try {
+            FileWriter fw = new FileWriter("multiSplitDT.csv");
+            save(root, fw);
+
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void save(MultiSplitNode node, FileWriter fw) {
+        try {
+            if(node.getLeaf() == false) {
+                fw.append(Boolean.toString(false));
+                fw.append(",");
+                fw.append(Integer.toString(node.getDecisionAttribute()));
+                fw.append(",");
+                fw.append(Integer.toString(node.deep));
+                fw.append(",");
+                for(int i = 0; i < node.getDecisionValues().length; i++) {
+                    fw.append(Double.toString(node.getDecisionValues()[i]));
+                    fw.append(",");
+                }
+                fw.append("\n");
+                for(int i = 0; i < featureSplit; i++) {
+                    save(node.children[i], fw);
+                }
+            }
+            else {
+                fw.append(Boolean.toString(true));
+                fw.append(",");
+                fw.append(Double.toString(node.getClassLabel()));
+                fw.append(",");
+                fw.append(Integer.toString(node.deep));
+                fw.append("\n");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void loadData() {
+        try {
+            BufferedReader br = new BufferedReader(new FileReader("multiSplitDT.csv"));
+            ArrayList<String> data = new ArrayList<>();
+            String line;
+            while ((line = br.readLine()) != null) {
+                data.add(line);
+            }
+            count = -1;
+            this.root = buildWithLoadedData(null, data);
+            br.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private MultiSplitNode buildWithLoadedData(MultiSplitNode parent, ArrayList<String> data) {
+
+        count++;
+        MultiSplitNode node = new MultiSplitNode();
+        node.parent = parent;
+        String[] parts = data.get(count).split(",");
+        if(parts[0].equals("false")) {
+            node.setLeaf(false);
+            node.setDecisionAttribute(Integer.parseInt(parts[1]));
+            double[] decisionValues = new double[featureSplit +1];
+            for(int i = 0; i < decisionValues.length; i++) {
+                decisionValues[i] = Double.parseDouble(parts[i + 3]);
+            }
+            node.setDecisionValues(decisionValues);
+            node.children = new MultiSplitNode[featureSplit];
+            for(int i = 0; i < node.children.length; i++) {
+                node.children[i] = buildWithLoadedData(node, data);
+            }
+        } else {
+            node.setLeaf(true);
+            node.setClassLabel(Double.parseDouble(parts[1]));
+            node.children = null;
+        }
+        return node;
     }
 }

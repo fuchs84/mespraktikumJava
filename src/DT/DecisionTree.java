@@ -16,6 +16,7 @@ public class DecisionTree {
     protected int[] entireDistribution;
     protected List<Double> usedLabels = new LinkedList<>();
     protected int numberOfInstances;
+    protected int deep;
 
 
     /**

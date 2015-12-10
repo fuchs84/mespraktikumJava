@@ -3,7 +3,7 @@ package DT.MSDT;
 /**
  * Created by MatthiasFuchs on 13.11.15.
  */
-public class MultiSplitNode extends DT.Node{
+public class MultiSplitNode extends DT.Node implements java.io.Serializable {
 
     /**
      * Attribute des Kontens
