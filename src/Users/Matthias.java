@@ -17,7 +17,8 @@ import java.util.ArrayList;
  */
 public class Matthias {
     private MLP mlp;
-    private BinarySplitDT decisionTree;
+    private BinarySplitDT binarySplitDT;
+    private MultiSplitDT multiSplitDT;
 
     private KNN knn;
     private NaiveBayes nb;
@@ -38,19 +39,39 @@ public class Matthias {
         double[][] testPattern = data.testPattern;
         double[] testLabel = data.testLabel;
 
+        mlp = new MLP();
+        int[] hidden = {40};
+        //mlp.train(trainPattern, trainLabel, hidden, 0.005, 1000);
 
-        decisionTree = new BinarySplitDT();
-        //decisionTree.train(trainPattern, trainLabel, 20, 3);
+        binarySplitDT = new BinarySplitDT();
+        //binarySplitDT.train(trainPattern, trainLabel, 20, 3);
 
-        //decisionTree.saveData();
-        decisionTree.loadData();
+        multiSplitDT = new MultiSplitDT();
+        //multiSplitDT.train(trainPattern, trainLabel, 3);
 
-        System.out.println("classify");
-        double[] classify = decisionTree.classify(testPattern);
+        //mlp.saveData();
+        mlp.loadData();
+        mlp.printWeights();
+
+        //multiSplitDT.saveData();
+        multiSplitDT.loadData();
+
+        //binarySplitDT.saveData();
+        binarySplitDT.loadData();
 
         confusionMatrix = new ConfusionMatrix();
-        confusionMatrix.computeConfusionMatrix(classify, testLabel);
 
+        double[] classify = mlp.classify(testPattern);
+        confusionMatrix.computeConfusionMatrix(classify, testLabel);
+        System.out.println();
+
+
+        classify = binarySplitDT.classify(testPattern);
+        confusionMatrix.computeConfusionMatrix(classify, testLabel);
+        System.out.println();
+
+        classify = multiSplitDT.classify(testPattern);
+        confusionMatrix.computeConfusionMatrix(classify, testLabel);
 
     }
 }

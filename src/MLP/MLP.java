@@ -1,5 +1,8 @@
 package MLP;
 
+import java.io.*;
+import java.util.ArrayList;
+import java.util.DoubleSummaryStatistics;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -15,14 +18,12 @@ public class MLP {
     private double [] input, output;
     private List<double[]> layers = new LinkedList<double[]>();
 
-    private int hiddenLayer = 1;
+    private int numberOfHiddenlayers = 1;
 
     private double[][] actualOutput;
     private double[][] desiredOutput;
     private double  entireError = 0.0;
 
-    private double[][][] patternsSplit;
-    private double[][][] labelsSplit;
 
     private List<Double> desiredOutputDistribution = new LinkedList<Double>();
 
@@ -39,18 +40,8 @@ public class MLP {
         nOutput = computeMaxLabel(labels);
         this.nHidden = nHidden;
 
-        hiddenLayer = nHidden.length;
-
-        input = new double[nInput + 1];
-        output = new double[nOutput];
-
-        for (int i = 0; i < hiddenLayer; i++) {
-            double [] hidden = new double[nHidden[i]+1];
-            layers.add(hidden);
-        }
-
+        initLayers();
         initWeights();
-
 
         patterns = normalisation(patterns);
         double[][] extendedLabels = extendedLabels(labels);
@@ -84,38 +75,29 @@ public class MLP {
         }
     }
 
-    public double[][][] splitData(double[][] data, int split) {
-        double[][][] splitData = new double[split][][];
-        int distribution = data.length/split;
+    private void initLayers(){
+        numberOfHiddenlayers = nHidden.length;
 
-        int offset = 0;
-        for (int i = 0; i < split-1; i++) {
-            splitData[i] = new double[distribution][];
+        input = new double[nInput + 1];
+        output = new double[nOutput];
 
-            for (int j = 0; j < distribution; j++) {
-                splitData[i][j] = data[j + offset];
-
-            }
-            offset += distribution;
+        for (int i = 0; i < numberOfHiddenlayers; i++) {
+            double [] hidden = new double[nHidden[i]+1];
+            layers.add(hidden);
         }
-        splitData[split-1] = new double[data.length-offset][];
-        for (int i = 0; i < data.length - offset; i++) {
-            splitData[split-1][i] = data[i + offset];
-
-        }
-        return splitData;
     }
+
 
 
     /**
      * Methode initialisiert die Gewichte für die Verbindungen
      */
     private void initWeights(){
-        for (int i = 0; i <= hiddenLayer; i++) {
+        for (int i = 0; i <= numberOfHiddenlayers; i++) {
             double[][] weightMatrix;
             if(i== 0) {
                 weightMatrix = new double[nInput+1][nHidden[i]+1];
-            } else if (i == hiddenLayer) {
+            } else if (i == numberOfHiddenlayers) {
                 weightMatrix = new double[nHidden[i-1]+1][nOutput];
             } else {
                 weightMatrix = new double[nHidden[i-1]+1][nHidden[i]+1];
@@ -133,7 +115,7 @@ public class MLP {
      * Methode gibt die Gewichte aus
      */
     public void printWeights() {
-        for (int i = 0; i <= hiddenLayer; i++) {
+        for (int i = 0; i <= numberOfHiddenlayers; i++) {
             double [][] weightMatrix = weights.get(i);
             System.out.println("weight Matrix " + i + ":");
             for (int j = 0; j < weightMatrix.length; j++) {
@@ -155,7 +137,7 @@ public class MLP {
             System.out.print(input[i] + " ");
         }
         System.out.println(" ");
-        for (int i = 0; i < hiddenLayer; i++) {
+        for (int i = 0; i < numberOfHiddenlayers; i++) {
             System.out.println("Hiddenlayer " + i + ":");
             double[] temp = layers.get(i);
             for (int j=0; j < temp.length; j++) {
@@ -296,7 +278,7 @@ public class MLP {
         }
         layers.set(0, targetLayer);
 
-        for (int h=1; h < hiddenLayer; h++) {
+        for (int h=1; h < numberOfHiddenlayers; h++) {
             startLayer = layers.get(h - 1);
             weightMatrix = weights.get(h);
             targetLayer = layers.get(h);
@@ -312,8 +294,8 @@ public class MLP {
             layers.set(h, targetLayer);
         }
 
-        startLayer = layers.get(hiddenLayer-1);
-        weightMatrix = weights.get(hiddenLayer);
+        startLayer = layers.get(numberOfHiddenlayers -1);
+        weightMatrix = weights.get(numberOfHiddenlayers);
         targetLayer = output;
         for (int i=0; i<targetLayer.length; i++) {
             targetLayer[i] = 0.0;
@@ -393,9 +375,9 @@ public class MLP {
         }
 
         List<double[]> errors = new LinkedList<double[]>();
-        for(int i = 0; i <=hiddenLayer; i++) {
+        for(int i = 0; i <= numberOfHiddenlayers; i++) {
             double [] error;
-            if (i < hiddenLayer) {
+            if (i < numberOfHiddenlayers) {
                 error = new double[nHidden[i]+1];
             } else {
                 error = new double[nOutput];
@@ -413,19 +395,19 @@ public class MLP {
 
 
 
-        error = errors.get(hiddenLayer);
+        error = errors.get(numberOfHiddenlayers);
         for (int j = 0; j < nOutput; j++) {
             error[j] = output[j] * (1.0-output[j]) * (desiredOutput[j] - output[j]);
         }
-        errors.set(hiddenLayer, error);
+        errors.set(numberOfHiddenlayers, error);
 
 
-        error = errors.get(hiddenLayer-1);
-        nextError = errors.get(hiddenLayer);
-        nextWeight = weights.get(hiddenLayer);
-        nCurrentLayer = nHidden[hiddenLayer-1];
+        error = errors.get(numberOfHiddenlayers -1);
+        nextError = errors.get(numberOfHiddenlayers);
+        nextWeight = weights.get(numberOfHiddenlayers);
+        nCurrentLayer = nHidden[numberOfHiddenlayers -1];
         nNextLayer = nOutput;
-        layer = layers.get(hiddenLayer-1);
+        layer = layers.get(numberOfHiddenlayers -1);
 
         for (int i = 0; i< nCurrentLayer; i++) {
             for (int j = 0; j< nNextLayer; j++) {
@@ -434,10 +416,10 @@ public class MLP {
             error[i] = layer[i]*(1.0-layer[i])*errorSum;
             errorSum = 0.0;
         }
-        errors.set(hiddenLayer-1, error);
+        errors.set(numberOfHiddenlayers -1, error);
 
 
-        for (int i = hiddenLayer-1; i > 0; i--) {
+        for (int i = numberOfHiddenlayers -1; i > 0; i--) {
             error = errors.get(i-1);
             nextError = errors.get(i);
             nextWeight = weights.get(i);
@@ -466,7 +448,7 @@ public class MLP {
         weights.set(0, weight);
 
 
-        for(int i = 0; i < hiddenLayer-1; i++) {
+        for(int i = 0; i < numberOfHiddenlayers -1; i++) {
             weight = weights.get(i+1);
             error = errors.get(i+1);
             layer = layers.get(i);
@@ -478,15 +460,112 @@ public class MLP {
             weights.set(i+1, weight);
         }
 
-        weight = weights.get(hiddenLayer);
-        layer = layers.get(hiddenLayer-1);
-        error = errors.get(hiddenLayer);
+        weight = weights.get(numberOfHiddenlayers);
+        layer = layers.get(numberOfHiddenlayers -1);
+        error = errors.get(numberOfHiddenlayers);
 
-        for (int i = 0; i <= nHidden[hiddenLayer-1]; i++) {
+        for (int i = 0; i <= nHidden[numberOfHiddenlayers -1]; i++) {
             for (int j = 0; j < nOutput; j++) {
                 weight[i][j] = weight[i][j] + learningRate*error[j]*layer[i]*distributionFactor;
             }
         }
-        weights.set(hiddenLayer, weight);
+        weights.set(numberOfHiddenlayers, weight);
+    }
+
+    public void saveData() {
+        try {
+            FileWriter fw = new FileWriter("mlp.csv");
+            fw.append(Integer.toString(nInput));
+            fw.append(",");
+            for(int i = 0; i < nHidden.length; i++) {
+                fw.append(Integer.toString(nHidden[i]));
+                fw.append(",");
+            }
+            fw.append(Integer.toString(nOutput));
+            fw.append("\n");
+            fw.append("\n");
+
+            double[][] weight;
+            for(int i = 0; i < weights.size(); i++) {
+                weight = weights.get(i);
+                for(int j = 0; j < weight.length; j++) {
+                    for(int k = 0; k < weight[0].length; k++) {
+                        fw.append(Double.toString(weight[j][k]));
+                        fw.append(",");
+                    }
+                    fw.append("\n");
+                }
+                fw.append("\n");
+            }
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void loadData() {
+        try {
+            BufferedReader br = new BufferedReader(new FileReader("mlp.csv"));
+            ArrayList<String> data = new ArrayList<>();
+            String line;
+            while ((line = br.readLine()) != null) {
+                data.add(line);
+            }
+            br.close();
+            buildWithLoadedData(data);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void buildWithLoadedData(ArrayList<String> data) {
+        String[] parts = data.get(0).split(",");
+        nHidden = new int[parts.length-2];
+        for(int i = 0; i < parts.length; i++) {
+            if(i == 0) {
+                nInput = Integer.parseInt(parts[i]);
+            } else if (i == parts.length-1) {
+                nOutput = Integer.parseInt(parts[i]);
+            } else {
+                nHidden[i-1] = Integer.parseInt(parts[i]);
+            }
+        }
+        initLayers();
+        initWeights(data);
+    }
+
+    private void initWeights(ArrayList<String> data){
+        String[] parts;
+        for (int i = 0; i <= numberOfHiddenlayers; i++) {
+            double[][] weightMatrix;
+            if(i== 0) {
+                weightMatrix = new double[nInput+1][nHidden[i]+1];
+                for (int j = 0; j < weightMatrix.length; j++) {
+                    parts = data.get(j +2).split(",");
+                    for (int k = 0; k < weightMatrix[0].length; k++) {
+                        weightMatrix[j][k] = Double.parseDouble(parts[k]);
+                    }
+                }
+            } else if (i == numberOfHiddenlayers) {
+                weightMatrix = new double[nHidden[i-1]+1][nOutput];
+                for (int j = 0; j < weightMatrix.length; j++) {
+                    parts = data.get(j + 2 + nInput + 2 + (i-1) * (nHidden[i-1] + 2)).split(",");
+                    for (int k = 0; k < weightMatrix[0].length; k++) {
+                        weightMatrix[j][k] = Double.parseDouble(parts[k]);
+                    }
+                }
+            } else {
+                weightMatrix = new double[nHidden[i-1]+1][nHidden[i]+1];
+                for (int j = 0; j < weightMatrix.length; j++) {
+                    parts = data.get(j + 2 + nInput + 2 + (i-1) * (nHidden[i-1] + 2)).split(",");
+                    for (int k = 0; k < weightMatrix[0].length; k++) {
+                        weightMatrix[j][k] = Double.parseDouble(parts[k]);
+                    }
+                }
+            }
+            weights.add(weightMatrix);
+        }
     }
 }
