@@ -1,4 +1,4 @@
-package DT.MSDT;
+package DT;
 
 /**
  * Created by MatthiasFuchs on 13.11.15.

@@ -56,7 +56,9 @@ public class ConfusionMatrix {
                 falseClassified++;
             }
         }
-        System.out.println("Richtig: " + trueClassified);
-        System.out.println("Falsch: " + falseClassified);
+        System.out.println("True: " + trueClassified);
+        System.out.println("False: " + falseClassified);
+        System.out.printf("Percent %.2f", ((double) trueClassified / output.length));
+        System.out.println();
     }
 }

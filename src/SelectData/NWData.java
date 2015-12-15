@@ -15,7 +15,7 @@ public class NWData {
      * @param path Pfad der CSV-Datei
      * @return
      */
-    public Data readCSV(String path) {
+    public DataOld readCSV(String path) {
         double[][] pattern = null;
         double[] label = null;
 
@@ -63,6 +63,6 @@ public class NWData {
             e.printStackTrace();
         }
 
-        return new Data(label, pattern);
+        return new DataOld(label, pattern);
     }
 }

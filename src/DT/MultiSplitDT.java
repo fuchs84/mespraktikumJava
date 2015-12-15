@@ -1,11 +1,7 @@
-package DT.MSDT;
-
-import DT.DecisionTree;
+package DT;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * Created by MatthiasFuchs on 29.11.15.
@@ -13,7 +9,6 @@ import java.util.List;
 public class MultiSplitDT extends DecisionTree {
 
     private MultiSplitNode root;
-    private ArrayList<MultiSplitNode> nodes = new ArrayList<>();
 
     private double[] values = {Double.NEGATIVE_INFINITY, -3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0, Double.POSITIVE_INFINITY};
     private int count;
@@ -55,7 +50,6 @@ public class MultiSplitDT extends DecisionTree {
         MultiSplitNode node = new MultiSplitNode();
         node.parent = parent;
         if(data[0].length == 0) {
-            System.out.println("Leaf (patterns = 0)");
             node.setLeaf(true);
             node.deep = deep;
             int label = defaultLabel;
@@ -64,13 +58,10 @@ public class MultiSplitDT extends DecisionTree {
                     label = i;
                 }
             }
-            System.out.println("Label: " + label);
             node.setClassLabel((double) label);
-            nodes.add(node);
             return node;
         }
         else if(this.deep <= deep) {
-            System.out.println("Leaf (deep = 0)");
             int[] distribution = computeClassDistribution(data);
             int maxDistribution = Integer.MIN_VALUE;
             int  maxLabel = 0;
@@ -85,17 +76,13 @@ public class MultiSplitDT extends DecisionTree {
             node.deep = deep;
             node.setClassLabel(maxLabel);
             node.children = null;
-            nodes.add(node);
             return node;
         }
         else if(isNodePure(data[data.length-1])) {
-            System.out.println("Leaf (pure)");
-
             node.setLeaf(true);
             node.deep = deep;
             node.setClassLabel(data[data.length - 1][0]);
             node.children = null;
-            nodes.add(node);
             return node;
         }
         else {
@@ -117,7 +104,6 @@ public class MultiSplitDT extends DecisionTree {
             node.setDecisionAttribute(maxIGFeature);
             node.setDecisionValues(values);
 
-            System.out.println("Selected Feature: " + maxIGFeature + " IG: " + maxIG + " Deep: " + deep);
             double[][][] newData = splitData(data, maxIGFeature);
 
             node.children = new MultiSplitNode[featureSplit];
@@ -125,7 +111,6 @@ public class MultiSplitDT extends DecisionTree {
             for (int i = 0; i < featureSplit; i++) {
                 node.children[i] = build(newData[i], node, deep);
             }
-            nodes.add(node);
             return node;
         }
     }
@@ -207,25 +192,6 @@ public class MultiSplitDT extends DecisionTree {
         return subLabels;
     }
 
-    public ArrayList<MultiSplitNode> getNodes() {
-        return nodes;
-    }
-
-    public void setNodes(ArrayList<MultiSplitNode> nodes) {
-        this.nodes = nodes;
-    }
-
-    /**
-     * Getter-Methode für Root-Knoten
-     * @return Root Knoten
-     */
-    public MultiSplitNode getRoot() {
-        return root;
-    }
-
-    public void setRoot(MultiSplitNode root) {
-        this.root = root;
-    }
 
 
     /**
@@ -247,7 +213,7 @@ public class MultiSplitDT extends DecisionTree {
      * @param pattern klassifizierendes Pattern
      * @return klassifiziertes Label
      */
-    public double passTree(double[] pattern) {
+    private double passTree(double[] pattern) {
         MultiSplitNode node = root;
         double classified, upperBound, lowerBound;
 

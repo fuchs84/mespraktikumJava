@@ -6,9 +6,9 @@ import java.util.ArrayList;
  */
 public class Crossvalidation {
 
-    public static ArrayList crossvalidate(double [][] inputpattern, double [] inputlabel, int splits){
-        ArrayList patternlist = new ArrayList();
-        ArrayList labelist = new ArrayList();
+    public static ArrayList<double[][]> crossvalidate(double [][] inputpattern, double [] inputlabel, int splits){
+        ArrayList<double[][]> patternlist = new ArrayList();
+        ArrayList<double[]> labelist = new ArrayList();
 
         int lengthsplit = (inputlabel.length/splits);
         System.out.println(lengthsplit);
@@ -29,9 +29,9 @@ public class Crossvalidation {
         return patternlist;
     }
 
-    public static ArrayList crossvalidatelabel(double [][] inputpattern, double [] inputlabel, int splits){
-        ArrayList patternlist = new ArrayList();
-        ArrayList labelist = new ArrayList();
+    public static ArrayList<double[]> crossvalidatelabel(double [][] inputpattern, double [] inputlabel, int splits){
+        ArrayList<double[][]> patternlist = new ArrayList();
+        ArrayList<double[]> labelist = new ArrayList();
 
         int lengthsplit = inputlabel.length/splits;
         for (int i = 0; i < splits; i++) {

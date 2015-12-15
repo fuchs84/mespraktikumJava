@@ -1,10 +1,4 @@
 package KNN;
-import SelectData.NWData;
-import SelectData.Crossvalidation;
-import SelectData.Data;
-
-import java.util.AbstractList;
-import java.util.ArrayList;
 
 /**
  * Created by Sebastian on 10.11.2015.
@@ -15,110 +9,106 @@ public class KNN {
 
 
 
-    public double[][] trainMatrix;
-    public double[] trainlabel;
-
-    public double[][] dataMatrix;
-    public double[] datalabel;
-
+    private double[][] trainPatterns;
+    private double[] trainLabels;
 
 
     public KNN() {
-        trainMatrix = new double[0][0];
-        trainlabel = new double[0];
+        trainPatterns = new double[0][0];
+        trainLabels = new double[0];
 
     }
 
     //Klassifiziert set aus Trainingsdaten
-    public double[] classify( int KNNS, double[][] testdata,String distancecalculation){
-        double [] predictedlabel = new double[testdata.length];
+    public double[] classify( int knn, double[][] patterns,String distanceCalculation){
+        double [] predictedlabel = new double[patterns.length];
         for (int i = 0; i < predictedlabel.length; i++) {
-            predictedlabel[i] = classify(KNNS, testdata[i],distancecalculation);
+            predictedlabel[i] = classify(knn, patterns[i],distanceCalculation);
 
         }
         return predictedlabel;
     }
 
     //fuegt weiter trainingsdaten zum set hinzu
-    public void train(double[][] pattern, double[] label){
-        double [][] temppattern = trainMatrix;
-        double [] templabel = trainlabel;
-        trainMatrix = new double[trainMatrix.length+pattern.length][pattern[0].length];
-        trainlabel = new double[trainlabel.length+label.length];
+    public void train(double[][] patterns, double[] labels){
+        double [][] temppattern = trainPatterns;
+        double [] templabel = trainLabels;
+        trainPatterns = new double[trainPatterns.length+patterns.length][patterns[0].length];
+        trainLabels = new double[trainLabels.length+labels.length];
         for (int i = 0; i < temppattern.length; i++) {
-            trainlabel[i] = templabel[i];
-            for (int j = 0; j < trainMatrix[0].length; j++) {
-                trainMatrix[i][j] = temppattern[i][j];
+            trainLabels[i] = templabel[i];
+            for (int j = 0; j < trainPatterns[0].length; j++) {
+                trainPatterns[i][j] = temppattern[i][j];
             }
 
         }
-        for (int i = temppattern.length; i < temppattern.length+pattern.length; i++) {
-            trainlabel[i] = label[i-temppattern.length];
-            for (int j = 0; j < trainMatrix[0].length; j++) {
-                trainMatrix[i][j] = pattern[i-temppattern.length][j];
+        for (int i = temppattern.length; i < temppattern.length+patterns.length; i++) {
+            trainLabels[i] = labels[i-temppattern.length];
+            for (int j = 0; j < trainPatterns[0].length; j++) {
+                trainPatterns[i][j] = patterns[i-temppattern.length][j];
             }
 
         }
     }
 
     //optimiert trainset durch eliminierung von vermutlichen Fehlern
-    public void optimizetrainset(){
+    public void optimizeTrainSet(){
         int lengthminus = 0;
-        for (int i = 0; i < trainMatrix.length; i++) {
-            int predicted = classify(7,trainMatrix[i],"Manhattan");
-            if(predicted != (int) trainlabel[i]){
+        for (int i = 0; i < trainPatterns.length; i++) {
+            int predicted = classify(7, trainPatterns[i],"Manhattan");
+            if(predicted != (int) trainLabels[i]){
                 lengthminus +=1;
             }
         }
         System.out.println(lengthminus);
-        double[][] temppattern = new double[trainMatrix.length-lengthminus][trainMatrix[0].length];
-        double [] templabel = new double[trainlabel.length-lengthminus];
+        double[][] temppattern = new double[trainPatterns.length-lengthminus][trainPatterns[0].length];
+        double [] templabel = new double[trainLabels.length-lengthminus];
         System.out.println(temppattern.length);
         int runindex = 0;
-        for (int j = 0; j < trainMatrix.length; j++) {
-            int predicted = classify(7,trainMatrix[j],"Manhattan");
-            if(predicted == (int) trainlabel[j]){
-                templabel[runindex] = trainlabel[j];
+        for (int j = 0; j < trainPatterns.length; j++) {
+            int predicted = classify(7, trainPatterns[j],"Manhattan");
+            if(predicted == (int) trainLabels[j]){
+                templabel[runindex] = trainLabels[j];
                 for (int i = 0; i < temppattern[0].length; i++) {
-                    temppattern[runindex][i] = trainMatrix[j][i];
+                    temppattern[runindex][i] = trainPatterns[j][i];
                 }
                 runindex+=1;
             }
         }
 
-        trainMatrix = new double[temppattern.length][temppattern[0].length];
-        trainlabel = new double[templabel.length];
-        trainMatrix = temppattern;
-        trainlabel = templabel;
+        trainPatterns = new double[temppattern.length][temppattern[0].length];
+        trainLabels = new double[templabel.length];
+        trainPatterns = temppattern;
+        trainLabels = templabel;
     }
 
     //Klassifiziert einzelnen Vektor von Daten
-    public int classify(  int KNNS, double[] testdata,String distancecalculation) {
-        double[][] datapattern = trainMatrix;
-        double[] label = trainlabel;
+    private int classify(  int knn, double[] pattern,String distanceCalculation) {
+        double[][] datapattern = trainPatterns;
+        double[] label = trainLabels;
         int abzugelemente = 0;
         double[] distance = new double[label.length];
-        if(distancecalculation.equals("Euclidean")){
+        if(distanceCalculation.equals("Euclidean")){
             for (int i = 0; i < label.length; i++){
                 double squaresum = 0;
-                for (int j = 0; j < testdata.length-abzugelemente; j++) {
-                    squaresum += Math.pow((datapattern[i][j] - testdata[j]), 2);
+                for (int j = 0; j < pattern.length-abzugelemente; j++) {
+                    squaresum += Math.pow((datapattern[i][j] - pattern[j]), 2);
                 }
                 distance[i] = Math.sqrt(squaresum);
             }
-        }else if (distancecalculation.equals("Manhattan")){
+        }else if (distanceCalculation.equals("Manhattan")){
                 for (int i = 0; i < label.length; i++){
                     double squaresum = 0;
-                    for (int j = 0; j < testdata.length-abzugelemente; j++) {
-                        squaresum += Math.abs((datapattern[i][j] - testdata[j]));
+                    for (int j = 0; j < pattern.length-abzugelemente; j++) {
+                        squaresum += Math.abs((datapattern[i][j] - pattern[j]));
                     }
                     distance[i] = squaresum;
                 }
         }
 
         double[] distancecheck = distance;
-        int[] extrema = new int[KNNS];
-        for (int t = 0; t < KNNS; t++) {
+        int[] extrema = new int[knn];
+        for (int t = 0; t < knn; t++) {
             for (int z = 0; z < distancecheck.length; z++) {
                 //System.out.println(distance[z]);
                 for (int w = z; w < distancecheck.length; w++) {
@@ -138,8 +128,6 @@ public class KNN {
 
 
         }
-        double sum;
-        sum = 0;
         int[] lablearray = new int[extrema.length];
         for (int f = 0; f < extrema.length; f++) {
             lablearray[f] = (int) label[extrema[f]];
@@ -151,7 +139,7 @@ public class KNN {
     }
 
 
-    public int getPopularElement(int[] a) {
+    private int getPopularElement(int[] a) {
         int count = 1, tempCount;
         int popular = a[0];
         int temp = 0;

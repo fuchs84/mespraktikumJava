@@ -4,26 +4,26 @@ package SelectData;
  * Created by MatthiasFuchs on 12.11.15.
  */
 public final class Data {
-    private final double[] label;
+    private final double[][] label;
     private final double[][] pattern;
     public double [][] testPattern;
-    public double [] testLabel;
-    public double [] trainLabel;
+    public double [][] testLabel;
+    public double [][] trainLabel;
     public double [][] trainPattern;
     private double split = 0.7;
 
-    public Data (double[] label, double[][] pattern) {
-        this.label = label;
+    public Data (double[][] label, double[][] pattern) {
+        this.label = transpose(label);
         this.pattern = pattern;
-        splitData();
+        splitData(pattern, label);
     }
 
-    private void splitData() {
+    private void splitData(double[][] pattern, double[][] label) {
         int boarder = (int) (pattern.length*split);
-        trainPattern = new double[boarder][pattern[0].length];
-        trainLabel = new double[boarder];
-        testPattern = new double[pattern.length - boarder][pattern[0].length];
-        testLabel = new double[pattern.length - boarder];
+        trainPattern = new double[boarder][];
+        trainLabel = new double[boarder][];
+        testPattern = new double[pattern.length - boarder][];
+        testLabel = new double[pattern.length - boarder][];
         for (int i = 0; i < pattern.length; i++) {
             if(i < boarder) {
                 trainPattern[i] = pattern[i];
@@ -33,9 +33,22 @@ public final class Data {
                 testLabel[i-boarder] = label[i];
             }
         }
+        trainLabel = transpose(trainLabel);
+        testLabel = transpose(testLabel);
     }
 
-    public double[] getLabel() {
+    private double[][] transpose(double[][] data) {
+        double[][] transpose = new double[data[0].length][data.length];
+        for (int i = 0; i < transpose.length; i++) {
+            for (int j = 0; j < transpose[0].length; j++) {
+                transpose[i][j] = data[j][i];
+            }
+
+        }
+        return transpose;
+    }
+
+    public double[][] getLabel() {
         return label;
     }
 

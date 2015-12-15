@@ -1,7 +1,5 @@
-package DT.BSDT;
+package DT;
 
-
-import DT.Node;
 
 /**
  * Created by MatthiasFuchs on 13.11.15.
