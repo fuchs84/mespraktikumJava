@@ -1,6 +1,8 @@
 package Users;
 
 import DT.BinarySplitDT;
+import DT.LMDT.DataOld;
+import DT.LMDT.NWData;
 import DT.MultiSplitDT;
 import KNN.KNN;
 import MLP.MLP;

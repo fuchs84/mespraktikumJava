@@ -1,4 +1,4 @@
-package SelectData;
+package DT.LMDT;
 
 /**
  * Created by MatthiasFuchs on 14.12.15.
