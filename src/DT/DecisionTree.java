@@ -3,17 +3,15 @@ package DT;
 import Jama.EigenvalueDecomposition;
 import Jama.Matrix;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 
 /**
  * Created by MatthiasFuchs on 13.11.15.
  */
 public class DecisionTree {
 
-    protected int featureSplit;
+    protected int quantifySize;
     protected List<Integer> usedFeature = new LinkedList<>();
     protected int defaultLabel;
     protected int[] entireDistribution;
@@ -22,6 +20,9 @@ public class DecisionTree {
     protected int deep;
     protected int minNodeSize;
     protected Matrix pcaMatrix;
+    protected int pca;
+    protected boolean pcaUse;
+
 
 
     /**
@@ -136,14 +137,17 @@ public class DecisionTree {
         double max, min;
         for(int i = 0; i < patterns[0].length; i++) {
             max = Double.NEGATIVE_INFINITY;
+            min = Double.POSITIVE_INFINITY;
             for(int j = 0; j < patterns.length; j++) {
-                if(max < Math.abs(patterns[j][i])) {
-                    max = Math.abs(patterns[j][i]);
+                if(max < patterns[j][i]) {
+                    max =patterns[j][i];
                 }
-
+                if(min > patterns[j][i]) {
+                    min = patterns[j][i];
+                }
             }
             for(int j = 0; j < patterns.length; j++) {
-                newPatterns[j][i] = patterns[j][i]/max;
+                newPatterns[j][i] = (patterns[j][i]-min)/(max-min);
             }
         }
         return newPatterns;
@@ -163,7 +167,7 @@ public class DecisionTree {
      * @return quantifizierten Grenzwerte der einzelnen Features
      */
     protected double[][] computeQuantifyValues(double[][] data) {
-        double [][] quantifyValues = new double[data.length-1][featureSplit+1];
+        double [][] quantifyValues = new double[data.length-1][quantifySize +1];
         double max, min, quantify;
         for(int i = 0; i < data.length-1; i++) {
             min = Double.POSITIVE_INFINITY;
@@ -176,12 +180,12 @@ public class DecisionTree {
                     min = data[i][j];
                 }
             }
-            quantify = (max - min)/((double) featureSplit);
-            for(int j = 0; j < featureSplit+1; j++) {
+            quantify = (max - min)/((double) quantifySize);
+            for(int j = 0; j < quantifySize +1; j++) {
                 if(j == 0) {
                     quantifyValues[i][j] = Double.NEGATIVE_INFINITY;
                 }
-                else if(j == featureSplit) {
+                else if(j == quantifySize) {
                     quantifyValues[i][j] = Double.POSITIVE_INFINITY;
                 }
                 else {
@@ -376,5 +380,48 @@ public class DecisionTree {
             }
         }
         return true;
+    }
+
+    protected void savePCA(String path) {
+        try {
+            FileWriter fw = new FileWriter(path);
+            double[][] pca = pcaMatrix.getArray();
+            for(int i = 0; i < pca.length; i++) {
+                for(int j = 0; j < pca[0].length; j++) {
+                    fw.append(Double.toString(pca[i][j]));
+                    fw.append(",");
+                }
+                fw.append("\n");
+            }
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    protected void loadPCA(String path) {
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(path));
+            ArrayList<String> data = new ArrayList<>();
+            String line;
+            while ((line = br.readLine()) != null) {
+                data.add(line);
+            }
+            double[][] pca = new double[data.size()][];
+            String[] parts;
+            for(int i = 0; i < pca.length; i++) {
+                parts = data.get(i).split(",");
+                pca[i] = new double[parts.length];
+                for(int j = 0; j < pca[i].length; j++) {
+                    pca[i][j] = Double.parseDouble(parts[j]);
+                }
+            }
+            pcaMatrix = new Matrix(pca);
+            br.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

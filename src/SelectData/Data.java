@@ -55,25 +55,4 @@ public final class Data {
     public double[][] getPattern() {
         return pattern;
     }
-
-    public double[] computeDistribution(double[] labels) {
-        int numberOfInstances = labels.length;
-        double[] distribution = new double[3];
-        for(int i = 0; i < labels.length; i++) {
-            if((int)labels[i] == 1) {
-                distribution[0]++;
-            }
-            if((int)labels[i] == 2) {
-                distribution[1]++;
-            }
-            if((int)labels[i] == 3) {
-                distribution[2]++;
-            }
-        }
-        for(int i = 0; i < distribution.length; i++) {
-            distribution[i] = distribution[i] / (double) numberOfInstances;
-        }
-
-        return distribution;
-    }
 }

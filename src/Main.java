@@ -1,14 +1,14 @@
-import Users.Matthias;
+import ShowData.Test;
+
 
 
 /**
  * Created by MatthiasFuchs on 06.11.15.
  */
 public class Main {
-    private static Matthias matthias;
+    private static Test test;
     public static void main(String[] args)  {
-        matthias = new Matthias();
-        //sebastian.run();
-        matthias.run();
+        test = new Test();
+        test.preselectionTest();
     }
 }

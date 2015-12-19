@@ -1,5 +1,7 @@
 package DT;
 
+import Jama.Matrix;
+
 import java.io.*;
 import java.util.ArrayList;
 
@@ -11,18 +13,28 @@ public class BinarySplitDT extends DecisionTree{
     private BinarySplitNode root;
     private int count;
     private int deep;
+    private int mode;
 
     private ArrayList<double[]> preferredFeatures = new ArrayList<>();
 
-    /**
-     * Methode trainiert den Decision Tree
-     * @param patterns Train-Patterns
-     * @param labels Train-Labels
-     * @param deep maximale Tiefe des Baums
-     * @param featureSplit Anzahl der Aufteilungen der einzelnen Features (Quantisierung)
-     */
-    public void train (double[][] patterns, double[] labels, int deep, int minNodeSize, int featureSplit) {
+
+    public void train (double[][] patterns, double[] labels, int deep, int minNodeSize, int quantifySize, int pca, int mode) {
         this.minNodeSize = minNodeSize;
+        this.pca = pca;
+        this.mode = mode;
+        if(mode == 1) {
+            patterns = standardization(patterns);
+        }
+        else if(mode == 2) {
+            patterns = normalisation(patterns);
+        }
+
+        if(pca > 0 && pca <= patterns[0].length) {
+            pcaUse = true;
+            patterns = computePCA(patterns, pca);
+        } else {
+            pcaUse = false;
+        }
 
         double[][] merge = merger(patterns, labels);
         double[][] data = transpose(merge);
@@ -30,13 +42,10 @@ public class BinarySplitDT extends DecisionTree{
 
 
         numberOfInstances = labels.length;
-        this.featureSplit = featureSplit;
+        this.quantifySize = quantifySize;
         defaultLabel = computeStrongestLabel(labels);
         entireDistribution = computeClassDistribution(labels);
 
-
-
-        //quantifyValues = computeQuantifyValues(data);
         root = build(data, null, 0);
     }
 
@@ -88,8 +97,8 @@ public class BinarySplitDT extends DecisionTree{
         }
         else {
             binarySplitNode.setLeaf(false);
-            if(featureSplit < 2) {
-                featureSplit--;
+            if(quantifySize < 2) {
+                quantifySize--;
             }
 
             double[][] quantifyValues = computeQuantifyValues(data);
@@ -144,12 +153,12 @@ public class BinarySplitDT extends DecisionTree{
      */
     private double[][] computeSubLabels(double[][] data, int featureNumber, double[] values) {
         double[][] sortData = sort(data, featureNumber);
-        double[][] subLabels = new double[featureSplit][];
+        double[][] subLabels = new double[quantifySize][];
         double upperBound, lowerBound;
         int count;
         lowerBound = values[0];
 
-        for (int i = 0; i < featureSplit; i++) {
+        for (int i = 0; i < quantifySize; i++) {
             upperBound = values[i+1];
             count = countHitValue(data[featureNumber],lowerBound, upperBound);
             subLabels[i] = new double[count];
@@ -171,9 +180,9 @@ public class BinarySplitDT extends DecisionTree{
     private double[] computeEntropyImpurity(double[][] data, double[][] quantifyValues, int featureNumber) {
         double[] impurityAndValue = new double[4];
         double[][] subLabels = computeSubLabels(data, featureNumber, quantifyValues[featureNumber]);
-        double[] impurity = new double[featureSplit];
+        double[] impurity = new double[quantifySize];
         double splitDistribution = 0;
-        for (int i = 0; i < featureSplit; i++) {
+        for (int i = 0; i < quantifySize; i++) {
             if(subLabels[i].length > 0 && subLabels[i].length < data[0].length) {
                 impurity[i] = computeEntropy(subLabels[i]);
             } else {
@@ -183,7 +192,7 @@ public class BinarySplitDT extends DecisionTree{
         }
         double minImpurity = Double.POSITIVE_INFINITY;
         double value = quantifyValues[featureNumber][0];
-        for (int i = 0; i < featureSplit; i++) {
+        for (int i = 0; i < quantifySize; i++) {
             if(minImpurity > impurity[i]) {
                 minImpurity = impurity[i];
                 value = quantifyValues[featureNumber][i+1];
@@ -235,6 +244,16 @@ public class BinarySplitDT extends DecisionTree{
      * @return double-Array mit den jeweiligen Labels
      */
     public double[] classify(double[][] patterns) {
+        if(mode == 1) {
+            patterns = standardization(patterns);
+        }
+        else if(mode == 2) {
+            patterns = normalisation(patterns);
+        }
+
+        if(pcaUse) {
+            patterns = usePCA(patterns);
+        }
         double[] labels = new double[patterns.length];
         for (int i = 0; i < patterns.length; i++) {
             labels[i] = passTree(patterns[i]);
@@ -270,8 +289,16 @@ public class BinarySplitDT extends DecisionTree{
     public void saveData() {
         try {
             FileWriter fw = new FileWriter("binarySplitDT.csv");
+            if(pcaUse) {
+                fw.append(Boolean.toString(true));
+                savePCA("binarySplitPCA.csv");
+            } else {
+                fw.append(Boolean.toString(false));
+            }
+            fw.append(",");
+            fw.append(Integer.toString(mode));
+            fw.append("\n");
             save(root, fw);
-
             fw.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -314,7 +341,15 @@ public class BinarySplitDT extends DecisionTree{
             while ((line = br.readLine()) != null) {
                 data.add(line);
             }
-            count = -1;
+            String[] parts = data.get(0).split(",");
+            if(Boolean.getBoolean(parts[0])) {
+                loadPCA("binarySplitPCA.csv");
+                pcaUse = true;
+            } else {
+                pcaUse = false;
+            }
+            mode = Integer.parseInt(parts[1]);
+            count = 0;
             this.root = buildWithLoadedData(null, data);
             br.close();
         } catch (FileNotFoundException e) {
@@ -344,5 +379,4 @@ public class BinarySplitDT extends DecisionTree{
         }
         return node;
     }
-
 }
