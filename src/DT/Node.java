@@ -12,6 +12,7 @@ public class Node {
     protected boolean leaf = false;
     protected double classLabel = Double.NEGATIVE_INFINITY;
     public int deep;
+
     /**
      * Verknuepfungen der Knoten untereinander
      */

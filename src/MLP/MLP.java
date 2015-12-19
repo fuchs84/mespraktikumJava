@@ -66,7 +66,6 @@ public class MLP {
 
                 entireError = 0.0;
                 calculateEntireError();
-                System.out.println("Entire Error: " + entireError);
                 index++;
             } while (previousEntireError >= entireError && index < maxIteration) ;
             System.out.println("Iterations: " + index);
@@ -201,18 +200,19 @@ public class MLP {
      * @param patterns Patterns
      * @return normalisierte Patterns
      */
-    private double[][] normalisation(double[][] patterns) {
+    protected double[][] normalisation(double[][] patterns) {
         double[][] newPatterns = new double[patterns.length][patterns[0].length];
-        double max;
+        double max, min;
         for(int i = 0; i < patterns[0].length; i++) {
             max = Double.NEGATIVE_INFINITY;
             for(int j = 0; j < patterns.length; j++) {
-                if(max < patterns[j][i]) {
-                    max = patterns[j][i];
+                if(max < Math.abs(patterns[j][i])) {
+                    max = Math.abs(patterns[j][i]);
                 }
+
             }
             for(int j = 0; j < patterns.length; j++) {
-               newPatterns[j][i] = patterns[j][i]/max;
+                newPatterns[j][i] = patterns[j][i]/max;
             }
         }
         return newPatterns;

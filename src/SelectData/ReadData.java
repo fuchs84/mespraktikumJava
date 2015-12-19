@@ -38,27 +38,28 @@ public class ReadData {
         }
 
         int offset = 0;
-        int offsetElan = 4;
+        int offsetLabels = 0;
+        int offsetPatterns = 2;
         String[] labelParts = labelData.get(0).split("\t");
         String[] patternParts = patternData.get(0).split("\t");
-        pattern = new double[lineIndex - offset][patternParts.length-offsetElan];
-        label = new double[lineIndex - offset][labelParts.length-offsetElan];
+        pattern = new double[lineIndex - offset][patternParts.length-offsetPatterns];
+        label = new double[lineIndex - offset][labelParts.length-offsetLabels];
 
         for(int i = offset; i < lineIndex; i++) {
             patternParts = patternData.get(i).split("\t");
             labelParts = labelData.get(i).split("\t");
             if(pattern[0].length > label[0].length) {
                 for(int j = 0; j < pattern[0].length; j++) {
-                    pattern[i-offset][j] = Double.parseDouble(patternParts[j+offsetElan]);
+                    pattern[i-offset][j] = Double.parseDouble(patternParts[j+offsetPatterns]);
                     if(j < label[0].length) {
-                        label[i-offset][j] = Double.parseDouble(labelParts[j+offsetElan]);
+                        label[i-offset][j] = Double.parseDouble(labelParts[j+offsetLabels]);
                     }
                 }
             } else {
                 for(int j = 0; j < label[0].length; j++) {
-                    label[i-offset][j] = Double.parseDouble(labelParts[j+offsetElan]);
+                    label[i-offset][j] = Double.parseDouble(labelParts[j+offsetLabels]);
                     if(j < pattern[0].length) {
-                        pattern[i-offset][j] = Double.parseDouble(patternParts[j+offsetElan]);
+                        pattern[i-offset][j] = Double.parseDouble(patternParts[j+offsetPatterns]);
                     }
                 }
             }

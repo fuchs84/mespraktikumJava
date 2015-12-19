@@ -11,7 +11,7 @@ public class ConfusionMatrix {
             System.out.println("Output und desiredOutput passen nicht zusammen!");
             return;
         }
-
+        System.out.println("Confusionsmatrix: ");
         int max = 0;
         for (int i = 0; i < output.length; i++) {
             if (max < (int) output[i]) {
@@ -56,6 +56,7 @@ public class ConfusionMatrix {
                 falseClassified++;
             }
         }
+        System.out.println("Results: ");
         System.out.println("True: " + trueClassified);
         System.out.println("False: " + falseClassified);
         System.out.printf("Percent %.2f", ((double) trueClassified / output.length));

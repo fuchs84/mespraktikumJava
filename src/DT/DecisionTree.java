@@ -1,5 +1,8 @@
 package DT;
 
+import Jama.EigenvalueDecomposition;
+import Jama.Matrix;
+
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -17,6 +20,8 @@ public class DecisionTree {
     protected List<Double> usedLabels = new LinkedList<>();
     protected int numberOfInstances;
     protected int deep;
+    protected int minNodeSize;
+    protected Matrix pcaMatrix;
 
 
     /**
@@ -24,7 +29,7 @@ public class DecisionTree {
      * @param patterns Train-Patterns
      * @return standardisierte Train-Patterns
      */
-    protected double[][] standardization(double[][] patterns) {
+    public double[][] standardization(double[][] patterns) {
         double samples = (double)patterns.length;
         double median;
         double standardDeviation;
@@ -55,7 +60,7 @@ public class DecisionTree {
      */
     protected double[][] computeCovarianceMatrix(double[][] patterns) {
         double samples = patterns.length;
-        double[][] covariance = new double[patterns[0].length][];
+        double[][] covariance = new double[patterns[0].length][patterns[0].length];
         double median;
         for(int i = 0; i < patterns[0].length; i++) {
             median = 0;
@@ -68,15 +73,80 @@ public class DecisionTree {
             }
         }
         for(int j = 0; j < patterns[0].length; j++) {
-            covariance[j] = new double[j+1];
             for (int k = 0; k <= j; k++) {
                 for(int l = 0; l < patterns.length; l++) {
                     covariance[j][k] += patterns[l][j]*patterns[l][k];
                 }
-                covariance[j][k] = covariance[j][k]/samples;
+                covariance[k][j] = covariance[j][k] = covariance[j][k]/samples;
+
             }
         }
         return covariance;
+    }
+
+    public double[][] computePCA(double[][] patterns, int k) {
+        double[][] covariance = computeCovarianceMatrix(patterns);
+        Matrix covarianceMatrix = new Matrix(covariance);
+        EigenvalueDecomposition evD = new EigenvalueDecomposition(covarianceMatrix);
+
+
+
+        double [][] ev = evD.getV().getArray();
+
+
+        double[][] pca = new double[ev.length][k];
+        int evIndex = ev[0].length - 1;
+        for(int i = 0; i < k; i++) {
+            for(int j = 0; j < ev.length; j++) {
+                pca[j][i] = ev[j][evIndex];
+            }
+            evIndex--;
+        }
+        patterns = computeZeroMeanPatterns(patterns);
+        Matrix patternsMatrix = new Matrix(patterns);
+        pcaMatrix = new Matrix(pca);
+
+        return (patternsMatrix.times(pcaMatrix).getArray());
+    }
+
+    public double[][] usePCA(double[][] patterns) {
+        patterns = computeZeroMeanPatterns(patterns);
+        Matrix patternsMatrix = new Matrix(patterns);
+        return (patternsMatrix.times(pcaMatrix).getArray());
+    }
+
+    public double[][] computeZeroMeanPatterns(double[][] patterns) {
+        int numberOfInstances = patterns.length;
+        double mean;
+        for(int i = 0; i < patterns[0].length; i++) {
+            mean = 0.0;
+            for(int j = 0; j < patterns.length; j++) {
+               mean = mean + patterns[j][i];
+            }
+            mean = mean/(double)numberOfInstances;
+            for(int j = 0; j < patterns.length; j++) {
+                patterns[j][i] = patterns[j][i] - mean;
+            }
+        }
+        return patterns;
+    }
+
+    public double[][] normalisation(double[][] patterns) {
+        double[][] newPatterns = new double[patterns.length][patterns[0].length];
+        double max, min;
+        for(int i = 0; i < patterns[0].length; i++) {
+            max = Double.NEGATIVE_INFINITY;
+            for(int j = 0; j < patterns.length; j++) {
+                if(max < Math.abs(patterns[j][i])) {
+                    max = Math.abs(patterns[j][i]);
+                }
+
+            }
+            for(int j = 0; j < patterns.length; j++) {
+                newPatterns[j][i] = patterns[j][i]/max;
+            }
+        }
+        return newPatterns;
     }
 
     protected void searchUsedLabels(double[] labels) {

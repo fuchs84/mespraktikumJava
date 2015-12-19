@@ -12,6 +12,8 @@ public class BinarySplitDT extends DecisionTree{
     private int count;
     private int deep;
 
+    private ArrayList<double[]> preferredFeatures = new ArrayList<>();
+
     /**
      * Methode trainiert den Decision Tree
      * @param patterns Train-Patterns
@@ -19,7 +21,9 @@ public class BinarySplitDT extends DecisionTree{
      * @param deep maximale Tiefe des Baums
      * @param featureSplit Anzahl der Aufteilungen der einzelnen Features (Quantisierung)
      */
-    public void train (double[][] patterns, double[] labels, int deep, int featureSplit) {
+    public void train (double[][] patterns, double[] labels, int deep, int minNodeSize, int featureSplit) {
+        this.minNodeSize = minNodeSize;
+
         double[][] merge = merger(patterns, labels);
         double[][] data = transpose(merge);
         this.deep = deep;
@@ -29,6 +33,8 @@ public class BinarySplitDT extends DecisionTree{
         this.featureSplit = featureSplit;
         defaultLabel = computeStrongestLabel(labels);
         entireDistribution = computeClassDistribution(labels);
+
+
 
         //quantifyValues = computeQuantifyValues(data);
         root = build(data, null, 0);
@@ -63,7 +69,7 @@ public class BinarySplitDT extends DecisionTree{
             binarySplitNode.right = null;
             return binarySplitNode;
         }
-        else if(this.deep <= deep || data[0].length < 10) {
+        else if(this.deep <= deep || minNodeSize > data[0].length) {
             int[] distribution = computeClassDistribution(data);
             int maxDistribution = Integer.MIN_VALUE;
             int  maxLabel = 0;
@@ -99,15 +105,24 @@ public class BinarySplitDT extends DecisionTree{
             double minImpuritySplitDistribution = Double.NEGATIVE_INFINITY;
             int minImpurityFeature = Integer.MIN_VALUE;
             for(int i = 0; i < entropyImpurity.length; i++) {
-                if(minImpurity >= entropyImpurity[i][0] && minImpuritySplitDistribution < entropyImpurity[i][2]) {
+                if(minImpurity >= entropyImpurity[i][0] && minImpuritySplitDistribution < entropyImpurity[i][3]) {
+                    preferredFeatures.add(entropyImpurity[i]);
                     minImpurity = entropyImpurity[i][0];
                     minImpurityValue = entropyImpurity[i][1];
-                    minImpuritySplitDistribution = entropyImpurity[i][2];
-                    minImpurityFeature = i;
+                    minImpurityFeature = (int) entropyImpurity[i][2];
+                    minImpuritySplitDistribution = entropyImpurity[i][3];
                 }
             }
-            usedFeature.add(minImpurityFeature);
+//            for(int i = 0; i < preferredFeatures.size(); i++) {
+//                double[] info = preferredFeatures.get(i);
+//                System.out.println("Entropy: " + info[0]);
+//                System.out.println("Value: " + info[1]);
+//                System.out.println("Feature: " + info[2]);
+//                System.out.println("Split: " + info[3]);
+//            }
+            preferredFeatures.clear();
 
+            usedFeature.add(minImpurityFeature);
 
             binarySplitNode.setDecisionValueBound(minImpurityValue);
             binarySplitNode.setDecisionAttribute(minImpurityFeature);
@@ -154,7 +169,7 @@ public class BinarySplitDT extends DecisionTree{
      * @return Entropie-Unreinheit und den dazugehörtigen Wert
      */
     private double[] computeEntropyImpurity(double[][] data, double[][] quantifyValues, int featureNumber) {
-        double[] impurityAndValue = new double[3];
+        double[] impurityAndValue = new double[4];
         double[][] subLabels = computeSubLabels(data, featureNumber, quantifyValues[featureNumber]);
         double[] impurity = new double[featureSplit];
         double splitDistribution = 0;
@@ -172,6 +187,7 @@ public class BinarySplitDT extends DecisionTree{
             if(minImpurity > impurity[i]) {
                 minImpurity = impurity[i];
                 value = quantifyValues[featureNumber][i+1];
+
                 if(subLabels[i].length > (data[0].length-subLabels[i].length)) {
                     splitDistribution = (double)(data[0].length - subLabels[i].length)/(double)subLabels[i].length;
                 } else {
@@ -181,7 +197,8 @@ public class BinarySplitDT extends DecisionTree{
         }
         impurityAndValue[0] = minImpurity;
         impurityAndValue[1] = value;
-        impurityAndValue[2] = splitDistribution;
+        impurityAndValue[2] = featureNumber;
+        impurityAndValue[3] = splitDistribution;
         return impurityAndValue;
     }
 
