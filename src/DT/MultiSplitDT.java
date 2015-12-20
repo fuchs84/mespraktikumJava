@@ -52,10 +52,6 @@ public class MultiSplitDT extends DecisionTree {
                     values[i] = -3.0 + (i-1)*6.0/(double)(quantifySize - 2);
                 }
             }
-            for(int i = 0; i < values.length; i++) {
-                System.out.print(values[i] + " ");
-            }
-            System.out.println();
         } else {
             this.quantifySize = 8;
         }

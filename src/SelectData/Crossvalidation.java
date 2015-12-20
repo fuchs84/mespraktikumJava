@@ -13,8 +13,6 @@ public class Crossvalidation {
         ArrayList<double[]> labelist = new ArrayList();
 
         int lengthsplit = (inputlabel.length/splits);
-        System.out.println(lengthsplit);
-        System.out.println(inputpattern.length);
         for (int i = 0; i < splits; i++) {
             double pattern[][]= new double[lengthsplit][inputpattern[0].length];
             double label[]= new double[lengthsplit];

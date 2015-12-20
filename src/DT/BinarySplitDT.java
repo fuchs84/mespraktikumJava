@@ -13,21 +13,14 @@ public class BinarySplitDT extends DecisionTree{
     private BinarySplitNode root;
     private int count;
     private int deep;
-    private int mode;
 
     private ArrayList<double[]> preferredFeatures = new ArrayList<>();
 
 
-    public void train (double[][] patterns, double[] labels, int deep, int minNodeSize, int quantifySize, int pca, int mode) {
+    public void train (double[][] patterns, double[] labels, int deep, int minNodeSize, int quantifySize, int pca) {
         this.minNodeSize = minNodeSize;
         this.pca = pca;
-        this.mode = mode;
-        if(mode == 1) {
-            patterns = standardization(patterns);
-        }
-        else if(mode == 2) {
-            patterns = normalisation(patterns);
-        }
+        patterns = normalisation(patterns);
 
         if(pca > 0 && pca <= patterns[0].length) {
             pcaUse = true;
@@ -244,12 +237,9 @@ public class BinarySplitDT extends DecisionTree{
      * @return double-Array mit den jeweiligen Labels
      */
     public double[] classify(double[][] patterns) {
-        if(mode == 1) {
-            patterns = standardization(patterns);
-        }
-        else if(mode == 2) {
-            patterns = normalisation(patterns);
-        }
+
+        patterns = normalisation(patterns);
+
 
         if(pcaUse) {
             patterns = usePCA(patterns);
@@ -295,8 +285,6 @@ public class BinarySplitDT extends DecisionTree{
             } else {
                 fw.append(Boolean.toString(false));
             }
-            fw.append(",");
-            fw.append(Integer.toString(mode));
             fw.append("\n");
             save(root, fw);
             fw.close();
@@ -341,14 +329,12 @@ public class BinarySplitDT extends DecisionTree{
             while ((line = br.readLine()) != null) {
                 data.add(line);
             }
-            String[] parts = data.get(0).split(",");
-            if(Boolean.getBoolean(parts[0])) {
+            if(Boolean.getBoolean(data.get(0))) {
                 loadPCA("binarySplitPCA.csv");
                 pcaUse = true;
             } else {
                 pcaUse = false;
             }
-            mode = Integer.parseInt(parts[1]);
             count = 0;
             this.root = buildWithLoadedData(null, data);
             br.close();

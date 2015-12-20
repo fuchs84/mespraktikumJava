@@ -8,6 +8,7 @@ import NaiveBayes.NaiveBayes;
 import SelectData.Crossvalidation;
 import SelectData.Data;
 import SelectData.ReadData;
+import com.sun.tools.doclets.formats.html.SourceToHTMLConverter;
 
 import java.util.ArrayList;
 
@@ -38,7 +39,7 @@ public class Test {
         crossvalidation = new Crossvalidation();
 
 
-        ArrayList<ArrayList> randomData = crossvalidation.randomDataSplit(data.getPattern(), data.getLabel()[3], 0.7);
+        ArrayList<ArrayList> randomData = crossvalidation.randomDataSplit(data.getPattern(), data.getLabel()[8], 0.7);
         ArrayList<double[][]> randomPattern = randomData.get(0);
         ArrayList<double[]> randomLabel = randomData.get(1);
         double[][] trainPattern = randomPattern.get(0);
@@ -50,13 +51,13 @@ public class Test {
         confusionMatrix = new ConfusionMatrix();
         double[] classify;
 
-        binarySplitDT = new BinarySplitDT();
-        //binarySplitDT.train(trainPattern, trainLabel, 50, 20, 10, 20, 1);
 
-        //binarySplitDT.saveData();
-        binarySplitDT.loadData();
-        classify = binarySplitDT.classify(testPattern);
-        confusionMatrix.computeConfusionMatrix(classify, testLabel);
+        System.out.println("schon");
+        multiSplitDT = new MultiSplitDT();
+        //multiSplitDT.train(trainPattern, trainLabel, 50, 40, 10, 0);
+        //classify = multiSplitDT.classify(testPattern);
+        //confusionMatrix.computeConfusionMatrix(classify, testLabel);
+
 
     }
 
@@ -97,11 +98,12 @@ public class Test {
             System.out.println();
         }
 
+        crossvalidation = new Crossvalidation();
         confusionMatrix = new ConfusionMatrix();
         double[] classify;
 
         double split = 0.7;
-        int[] selectedLabelSets = {1, 3, 4, 6, 8, 9, 10};
+        int[] selectedLabelSets = {9, 10};
         for(int i = 0; i < selectedLabelSets.length; i++) {
             ArrayList<ArrayList> randomData = null;
             ArrayList<double[][]> randomPattern;
@@ -144,6 +146,9 @@ public class Test {
                     System.out.println("Label-Set nicht vorhanden");
                     break;
             }
+
+            System.out.println("Label-Set: " + selectedLabelSets[i]);
+
             randomPattern = randomData.get(0);
             randomLabel = randomData.get(1);
             double[][] trainPattern = randomPattern.get(0);
@@ -166,41 +171,38 @@ public class Test {
             }
             System.out.println();
 
-            for (int c = 5; c < 16; c++) {
+            for (int c = 0; c < 6; c++) {
                 System.out.println("KNN: ");
-                System.out.println("K: " + c);
+                System.out.println("K: " + (5 + 2*c));
                 knn = new KNN();
                 knn.train(trainPattern, trainLabel);
-                classify = knn.classify(c, testPattern, "Manhattan");
+                classify = knn.classify((5 + 2*c), testPattern, "Manhattan");
                 confusionMatrix.computeConfusionMatrix(classify, testLabel);
                 confusionMatrix.computeTrueFalse(classify, testLabel);
                 System.out.println();
             }
 
-            for(int a = 0; a < 3; a++) {
-                for(int b = 5; b < 11; b++) {
-                    for(int c = 0; c < 6; c++) {
-                        System.out.println("Binary: ");
-                        System.out.println("Mode: " + a);
-                        System.out.println("Splitsize: " + b);
-                        System.out.println("PCA: " + c*10);
-                        binarySplitDT = new BinarySplitDT();
-                        binarySplitDT.train(trainPattern, trainLabel, 50, 20, b, c*10, a);
-                        classify = binarySplitDT.classify(testPattern);
-                        confusionMatrix.computeConfusionMatrix(classify, testLabel);
-                        confusionMatrix.computeTrueFalse(classify, testLabel);
-                        System.out.println();
-                    }
+            for(int b = 0; b < 6; b++) {
+                for(int c = 0; c < 6; c++) {
+                    System.out.println("Binary: ");
+                    System.out.println("Splitsize: " + (5 + 2*b));
+                    System.out.println("PCA: " + c*10);
+                    binarySplitDT = new BinarySplitDT();
+                    binarySplitDT.train(trainPattern, trainLabel, 50, 20, (5 + 2*b), c*10);
+                    classify = binarySplitDT.classify(testPattern);
+                    confusionMatrix.computeConfusionMatrix(classify, testLabel);
+                    confusionMatrix.computeTrueFalse(classify, testLabel);
+                    System.out.println();
                 }
             }
 
-            for(int b = 8; b < 13; b++) {
+            for(int b = 0; b < 4; b++) {
                 for (int c = 0; c < 6; c++) {
                     System.out.println("Multi: ");
-                    System.out.println("Splitsize: " + b);
+                    System.out.println("Splitsize: " + (8 + b*2));
                     System.out.println("PCA: " + c * 10);
                     multiSplitDT = new MultiSplitDT();
-                    multiSplitDT.train(trainPattern, trainLabel, 20, 40, b, c*10);
+                    //multiSplitDT.train(trainPattern, trainLabel, 20, 40, (8 + b*2), c*10);
                     classify = multiSplitDT.classify(testPattern);
                     confusionMatrix.computeConfusionMatrix(classify, testLabel);
                     confusionMatrix.computeTrueFalse(classify, testLabel);
@@ -211,12 +213,151 @@ public class Test {
     }
 
     public void testTheBests() {
+        readData = new ReadData();
 
+        String labelPath = "/Users/MatthiasFuchs/Desktop/Testdaten/Testdaten_Samples/LabelsAllpass.csv";
+        String patternPath = "/Users/MatthiasFuchs/Desktop/Testdaten/Testdaten_Samples/dataAllpass.csv";
+        dataPass = readData.readCSVs(patternPath, labelPath);
+
+        labelPath = "/Users/MatthiasFuchs/Desktop/Testdaten/Testdaten_Samples/LabelsAll.csv";
+        patternPath = "/Users/MatthiasFuchs/Desktop/Testdaten/Testdaten_Samples/dataAll.csv";
+
+        dataAll = readData.readCSVs(patternPath, labelPath);
+
+        double[] distribution = computeDistribution(dataPass.getLabel()[0]);
+        System.out.println("Selected Label-Set: " + 1);
+        for(int j = 0; j < distribution.length; j++) {
+            System.out.println("Label " + (j+1) + ": " + distribution[j]);
+        }
+        System.out.println();
+
+        for(int i = 0; i < dataAll.getLabel().length; i++) {
+            distribution = computeDistribution(dataAll.getLabel()[i]);
+            System.out.println("Selected Label-Set: " + (i+2));
+            for(int j = 0; j < distribution.length; j++) {
+                System.out.println("Label " + (j+1) + ": " + distribution[j]);
+            }
+            System.out.println();
+        }
 
         crossvalidation = new Crossvalidation();
+
+        double[] classify;
+
         int split = 10;
 
+        int[] splitSizesBinary = {7, 7, 13, 7, 9, 11, 7};
+        int[] splitSizesMulti = {10, 10, 10, 8, 10, 8, 10};
+        int[] selectedLabelSets = {1, 3, 4, 6, 8, 9, 10};
+        for(int i = 0; i < selectedLabelSets.length; i++) {
+            confusionMatrix = new ConfusionMatrix();
 
+            ArrayList<ArrayList> crossData = null;
+            ArrayList<double[][]> crossPattern;
+            ArrayList<double[]> crossLabel;
+            switch (selectedLabelSets[i]) {
+                case 1:
+                    crossData = crossvalidation.crossvalidate(dataPass.getPattern(), dataPass.getLabel()[0], split);
+                    break;
+                case 2:
+                    crossData = crossvalidation.crossvalidate(dataAll.getPattern(), dataAll.getLabel()[0], split);
+                    break;
+                case 3:
+                    crossData = crossvalidation.crossvalidate(dataAll.getPattern(), dataAll.getLabel()[1], split);
+                    break;
+                case 4:
+                    crossData = crossvalidation.crossvalidate(dataAll.getPattern(), dataAll.getLabel()[2], split);
+                    break;
+                case 5:
+                    crossData = crossvalidation.crossvalidate(dataAll.getPattern(), dataAll.getLabel()[3], split);
+                    break;
+                case 6:
+                    crossData = crossvalidation.crossvalidate(dataAll.getPattern(), dataAll.getLabel()[4], split);
+                    break;
+                case 7:
+                    crossData = crossvalidation.crossvalidate(dataAll.getPattern(), dataAll.getLabel()[5], split);
+                    break;
+                case 8:
+                    crossData = crossvalidation.crossvalidate(dataAll.getPattern(), dataAll.getLabel()[6], split);
+                    break;
+                case 9:
+                    crossData = crossvalidation.crossvalidate(dataAll.getPattern(), dataAll.getLabel()[7], split);
+                    break;
+                case 10:
+                    crossData = crossvalidation.crossvalidate(dataAll.getPattern(), dataAll.getLabel()[8], split);
+                    break;
+                case 11:
+                    crossData = crossvalidation.crossvalidate(dataAll.getPattern(), dataAll.getLabel()[9], split);
+                    break;
+                default:
+                    System.out.println("Label-Set nicht vorhanden");
+                    break;
+            }
+
+            System.out.println("Label-Set: " + selectedLabelSets[i]);
+            crossPattern = crossData.get(0);
+            crossLabel = crossData.get(1);
+
+            for(int j = 0; j < split; j++) {
+                double[][] trainPattern = new double[crossPattern.get(0).length*(split-1)][];
+                double[] trainLabel = new double[crossLabel.get(0).length*(split-1)];
+                double[][] testPattern = crossPattern.get(j);
+                double[] testLabel = crossLabel.get(j);
+
+                int splitLength = crossPattern.get(j).length;
+                int offset = 0;
+                for(int k = 0; k < split; k++) {
+                    if(k != j) {
+                        for(int l = 0; l < splitLength; l++) {
+                            trainPattern[l + offset] = crossPattern.get(k)[l];
+                            trainLabel[l + offset] = crossLabel.get(k)[l];
+
+                        }
+                        offset = offset + splitLength;
+                    }
+                }
+                System.out.println("Selected-Train: " + j + " Train/Test-Size: " + trainLabel.length + "/" + testLabel.length);
+                System.out.println("Train distribution: ");
+                distribution = computeDistribution(trainLabel);
+                for (int l = 0; l < distribution.length; l++) {
+                    System.out.println("Label " + (l + 1) + ": " + distribution[l]);
+                }
+                System.out.println("Test distribution: ");
+                distribution = computeDistribution(testLabel);
+                for (int l = 0; l < distribution.length; l++) {
+                    System.out.println("Label " + (l + 1) + ": " + distribution[l]);
+                }
+                System.out.println();
+
+                System.out.println("KNN: ");
+                knn = new KNN();
+                knn.train(trainPattern, trainLabel);
+                classify = knn.classify(5, testPattern, "Manhattan");
+                confusionMatrix.computeConfusionMatrix(classify, testLabel);
+                confusionMatrix.computeTrueFalse(classify, testLabel);
+                confusionMatrix.resultsKNN(classify, testLabel);
+                System.out.println();
+
+                System.out.println("Binary: ");
+                binarySplitDT = new BinarySplitDT();
+                binarySplitDT.train(trainPattern, trainLabel, 50, 20, splitSizesBinary[j], 0);
+                classify = binarySplitDT.classify(testPattern);
+                confusionMatrix.computeConfusionMatrix(classify, testLabel);
+                confusionMatrix.computeTrueFalse(classify, testLabel);
+                confusionMatrix.resultsBinary(classify, testLabel);
+                System.out.println();
+
+                System.out.println("Multi: ");
+                multiSplitDT = new MultiSplitDT();
+                multiSplitDT.train(trainPattern, trainLabel, 20, 40, splitSizesMulti[j], 0);
+                classify = multiSplitDT.classify(testPattern);
+                confusionMatrix.computeConfusionMatrix(classify, testLabel);
+                confusionMatrix.computeTrueFalse(classify, testLabel);
+                confusionMatrix.resultsMulti(classify, testLabel);
+                System.out.println();
+            }
+            confusionMatrix.printEntireResults();
+        }
     }
 
 
