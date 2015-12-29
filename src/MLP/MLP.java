@@ -200,19 +200,22 @@ public class MLP {
      * @param patterns Patterns
      * @return normalisierte Patterns
      */
-    protected double[][] normalisation(double[][] patterns) {
+    private double[][] normalisation(double[][] patterns) {
         double[][] newPatterns = new double[patterns.length][patterns[0].length];
         double max, min;
         for(int i = 0; i < patterns[0].length; i++) {
             max = Double.NEGATIVE_INFINITY;
+            min = Double.POSITIVE_INFINITY;
             for(int j = 0; j < patterns.length; j++) {
-                if(max < Math.abs(patterns[j][i])) {
-                    max = Math.abs(patterns[j][i]);
+                if(max < patterns[j][i]) {
+                    max =patterns[j][i];
                 }
-
+                if(min > patterns[j][i]) {
+                    min = patterns[j][i];
+                }
             }
             for(int j = 0; j < patterns.length; j++) {
-                newPatterns[j][i] = patterns[j][i]/max;
+                newPatterns[j][i] = (patterns[j][i]-min)/(max-min);
             }
         }
         return newPatterns;

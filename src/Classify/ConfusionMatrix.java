@@ -1,4 +1,4 @@
-package ShowData;
+package Classify;
 
 /**
  * Created by MatthiasFuchs on 12.11.15.

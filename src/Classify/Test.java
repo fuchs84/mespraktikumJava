@@ -1,4 +1,4 @@
-package ShowData;
+package Classify;
 
 import DT.BinarySplitDT;
 import DT.MultiSplitDT;
@@ -8,7 +8,6 @@ import NaiveBayes.NaiveBayes;
 import SelectData.Crossvalidation;
 import SelectData.Data;
 import SelectData.ReadData;
-import com.sun.tools.doclets.formats.html.SourceToHTMLConverter;
 
 import java.util.ArrayList;
 
@@ -32,33 +31,15 @@ public class Test {
 
 
     public void classifierTest() {
-        String labelPath = "/Users/MatthiasFuchs/Desktop/Testdaten/Testdaten_Samples/LabelsAll.csv";
-        String patternPath = "/Users/MatthiasFuchs/Desktop/Testdaten/Testdaten_Samples/dataAll.csv";
+
+        String path = "/Users/MatthiasFuchs/Desktop/Testdaten/ID004/All/LabelsAllkonstruierte.csv";
         readData = new ReadData();
-        data = readData.readCSVs(patternPath, labelPath);
-        crossvalidation = new Crossvalidation();
-
-
-        ArrayList<ArrayList> randomData = crossvalidation.randomDataSplit(data.getPattern(), data.getLabel()[8], 0.7);
-        ArrayList<double[][]> randomPattern = randomData.get(0);
-        ArrayList<double[]> randomLabel = randomData.get(1);
-        double[][] trainPattern = randomPattern.get(0);
-        double[] trainLabel = randomLabel.get(0);
-        double[][] testPattern = randomPattern.get(1);
-        double[] testLabel = randomLabel.get(1);
-
-
-        confusionMatrix = new ConfusionMatrix();
-        double[] classify;
-
-
-        System.out.println("schon");
-        multiSplitDT = new MultiSplitDT();
-        //multiSplitDT.train(trainPattern, trainLabel, 50, 40, 10, 0);
-        //classify = multiSplitDT.classify(testPattern);
-        //confusionMatrix.computeConfusionMatrix(classify, testLabel);
-
-
+        int[] step = readData.readStepCSV(path);
+        int sum = 0;
+        for(int i = 0; i < step.length; i++) {
+            sum += step[i];
+        }
+        System.out.println(sum);
     }
 
     private boolean isNodePure(double[] labels) {
@@ -215,12 +196,12 @@ public class Test {
     public void testTheBests() {
         readData = new ReadData();
 
-        String labelPath = "/Users/MatthiasFuchs/Desktop/Testdaten/Testdaten_Samples/LabelsAllpass.csv";
-        String patternPath = "/Users/MatthiasFuchs/Desktop/Testdaten/Testdaten_Samples/dataAllpass.csv";
+        String labelPath = "/Users/MatthiasFuchs/Desktop/Testdaten/ID004/All/LabelsAllkonstruiertepass.csv";
+        String patternPath = "/Users/MatthiasFuchs/Desktop/Testdaten/ID004/All/dataAllkonstruiertepass.csv";
         dataPass = readData.readCSVs(patternPath, labelPath);
 
-        labelPath = "/Users/MatthiasFuchs/Desktop/Testdaten/Testdaten_Samples/LabelsAll.csv";
-        patternPath = "/Users/MatthiasFuchs/Desktop/Testdaten/Testdaten_Samples/dataAll.csv";
+        labelPath = "/Users/MatthiasFuchs/Desktop/Testdaten/ID004/All/LabelsAllkonstruierte.csv";
+        patternPath = "/Users/MatthiasFuchs/Desktop/Testdaten/ID004/All/dataAllkonstruierte.csv";
 
         dataAll = readData.readCSVs(patternPath, labelPath);
 
@@ -246,9 +227,9 @@ public class Test {
 
         int split = 10;
 
-        int[] splitSizesBinary = {7, 7, 13, 7, 9, 11, 7};
-        int[] splitSizesMulti = {10, 10, 10, 8, 10, 8, 10};
-        int[] selectedLabelSets = {1, 3, 4, 6, 8, 9, 10};
+        int[] splitSizesBinary = {};
+        int[] splitSizesMulti = {};
+        int[] selectedLabelSets = {1, 3, 4, 6, 7, 8, 9, 10, 11, 12};
         for(int i = 0; i < selectedLabelSets.length; i++) {
             confusionMatrix = new ConfusionMatrix();
 
@@ -340,7 +321,7 @@ public class Test {
 
                 System.out.println("Binary: ");
                 binarySplitDT = new BinarySplitDT();
-                binarySplitDT.train(trainPattern, trainLabel, 50, 20, splitSizesBinary[j], 0);
+                binarySplitDT.train(trainPattern, trainLabel, 50, 20, splitSizesBinary[i], 0);
                 classify = binarySplitDT.classify(testPattern);
                 confusionMatrix.computeConfusionMatrix(classify, testLabel);
                 confusionMatrix.computeTrueFalse(classify, testLabel);
@@ -349,7 +330,7 @@ public class Test {
 
                 System.out.println("Multi: ");
                 multiSplitDT = new MultiSplitDT();
-                multiSplitDT.train(trainPattern, trainLabel, 20, 40, splitSizesMulti[j], 0);
+                multiSplitDT.train(trainPattern, trainLabel, 20, 40, splitSizesMulti[i], 0);
                 classify = multiSplitDT.classify(testPattern);
                 confusionMatrix.computeConfusionMatrix(classify, testLabel);
                 confusionMatrix.computeTrueFalse(classify, testLabel);

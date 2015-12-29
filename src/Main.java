@@ -1,4 +1,4 @@
-import ShowData.Test;
+import Classify.Test;
 
 
 
@@ -9,6 +9,6 @@ public class Main {
     private static Test test;
     public static void main(String[] args)  {
         test = new Test();
-        test.testTheBests();
+        test.classifierTest();
     }
 }
