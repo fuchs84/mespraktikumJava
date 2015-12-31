@@ -19,7 +19,6 @@ public class DecisionTree {
     protected int numberOfInstances;
     protected int deep;
     protected int minNodeSize;
-    protected Matrix pcaMatrix;
     protected int pca;
     protected boolean pcaUse;
 
@@ -59,78 +58,7 @@ public class DecisionTree {
      * @param patterns Train-Patterns
      * @return Kovarianzmatrix
      */
-    protected double[][] computeCovarianceMatrix(double[][] patterns) {
-        double samples = patterns.length;
-        double[][] covariance = new double[patterns[0].length][patterns[0].length];
-        double median;
-        for(int i = 0; i < patterns[0].length; i++) {
-            median = 0;
-            for(int j = 0; j < patterns.length; j++) {
-               median += patterns[j][i];
-            }
-            median = median/samples;
-            for(int j = 0; j < patterns.length; j++) {
-                patterns[j][i] = patterns[j][i] - median;
-            }
-        }
-        for(int j = 0; j < patterns[0].length; j++) {
-            for (int k = 0; k <= j; k++) {
-                for(int l = 0; l < patterns.length; l++) {
-                    covariance[j][k] += patterns[l][j]*patterns[l][k];
-                }
-                covariance[k][j] = covariance[j][k] = covariance[j][k]/samples;
 
-            }
-        }
-        return covariance;
-    }
-
-    public double[][] computePCA(double[][] patterns, int k) {
-        double[][] covariance = computeCovarianceMatrix(patterns);
-        Matrix covarianceMatrix = new Matrix(covariance);
-        EigenvalueDecomposition evD = new EigenvalueDecomposition(covarianceMatrix);
-
-
-
-        double [][] ev = evD.getV().getArray();
-
-
-        double[][] pca = new double[ev.length][k];
-        int evIndex = ev[0].length - 1;
-        for(int i = 0; i < k; i++) {
-            for(int j = 0; j < ev.length; j++) {
-                pca[j][i] = ev[j][evIndex];
-            }
-            evIndex--;
-        }
-        patterns = computeZeroMeanPatterns(patterns);
-        Matrix patternsMatrix = new Matrix(patterns);
-        pcaMatrix = new Matrix(pca);
-
-        return (patternsMatrix.times(pcaMatrix).getArray());
-    }
-
-    public double[][] usePCA(double[][] patterns) {
-        patterns = computeZeroMeanPatterns(patterns);
-        Matrix patternsMatrix = new Matrix(patterns);
-        return (patternsMatrix.times(pcaMatrix).getArray());
-    }
-
-    public double[][] computeZeroMeanPatterns(double[][] patterns) {
-        int numberOfInstances = patterns.length;
-        double mean;
-        for(int i = 0; i < patterns[0].length; i++) {
-            mean = 0.0;
-            for(int j = 0; j < patterns.length; j++) {
-               mean = mean + patterns[j][i];
-            }
-            mean = mean/(double)numberOfInstances;
-            for(int j = 0; j < patterns.length; j++) {
-                patterns[j][i] = patterns[j][i] - mean;
-            }
-        }
-        return patterns;
-    }
 
     public double[][] normalisation(double[][] patterns) {
         double[][] newPatterns = new double[patterns.length][patterns[0].length];
@@ -380,48 +308,5 @@ public class DecisionTree {
             }
         }
         return true;
-    }
-
-    protected void savePCA(String path) {
-        try {
-            FileWriter fw = new FileWriter(path);
-            double[][] pca = pcaMatrix.getArray();
-            for(int i = 0; i < pca.length; i++) {
-                for(int j = 0; j < pca[0].length; j++) {
-                    fw.append(Double.toString(pca[i][j]));
-                    fw.append(",");
-                }
-                fw.append("\n");
-            }
-            fw.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    protected void loadPCA(String path) {
-        try {
-            BufferedReader br = new BufferedReader(new FileReader(path));
-            ArrayList<String> data = new ArrayList<>();
-            String line;
-            while ((line = br.readLine()) != null) {
-                data.add(line);
-            }
-            double[][] pca = new double[data.size()][];
-            String[] parts;
-            for(int i = 0; i < pca.length; i++) {
-                parts = data.get(i).split(",");
-                pca[i] = new double[parts.length];
-                for(int j = 0; j < pca[i].length; j++) {
-                    pca[i][j] = Double.parseDouble(parts[j]);
-                }
-            }
-            pcaMatrix = new Matrix(pca);
-            br.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 }

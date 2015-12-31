@@ -10,7 +10,6 @@ public class MultiSplitNode extends DT.Node implements java.io.Serializable {
      */
     private double[] decisionValues;
 
-
     /**
      * Verknuepfungen der Knoten untereinander
      */

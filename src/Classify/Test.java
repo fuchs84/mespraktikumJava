@@ -7,6 +7,7 @@ import MLP.MLP;
 import NaiveBayes.NaiveBayes;
 import SelectData.Crossvalidation;
 import SelectData.Data;
+import SelectData.FeatureSelection;
 import SelectData.ReadData;
 
 import java.util.ArrayList;
@@ -28,18 +29,21 @@ public class Test {
     private Data dataPass;
     private Crossvalidation crossvalidation;
     private ConfusionMatrix confusionMatrix;
+    private FeatureSelection featureSelection;
 
 
     public void classifierTest() {
+        featureSelection = new FeatureSelection();
 
-        String path = "/Users/MatthiasFuchs/Desktop/Testdaten/ID004/All/LabelsAllkonstruierte.csv";
+        String labelPath = "/Users/MatthiasFuchs/Desktop/Testdaten/Testdaten_Samples/LabelsAllpass.csv";
+        String patternPath = "/Users/MatthiasFuchs/Desktop/Testdaten/Testdaten_Samples/dataAllpass.csv";
         readData = new ReadData();
-        int[] step = readData.readStepCSV(path);
-        int sum = 0;
-        for(int i = 0; i < step.length; i++) {
-            sum += step[i];
+        data = readData.readCSVs(patternPath, labelPath);
+        double[][] patterns = data.getPattern();
+        double[] variance = featureSelection.computeVariance(patterns);
+        for(int i = 0; i < variance.length; i++) {
+            System.out.println(variance[i]);
         }
-        System.out.println(sum);
     }
 
     private boolean isNodePure(double[] labels) {
@@ -164,31 +168,25 @@ public class Test {
             }
 
             for(int b = 0; b < 6; b++) {
-                for(int c = 0; c < 6; c++) {
-                    System.out.println("Binary: ");
-                    System.out.println("Splitsize: " + (5 + 2*b));
-                    System.out.println("PCA: " + c*10);
-                    binarySplitDT = new BinarySplitDT();
-                    binarySplitDT.train(trainPattern, trainLabel, 50, 20, (5 + 2*b), c*10);
-                    classify = binarySplitDT.classify(testPattern);
-                    confusionMatrix.computeConfusionMatrix(classify, testLabel);
-                    confusionMatrix.computeTrueFalse(classify, testLabel);
-                    System.out.println();
-                }
+                System.out.println("Binary: ");
+                System.out.println("Splitsize: " + (5 + 2*b));
+                binarySplitDT = new BinarySplitDT();
+                binarySplitDT.train(trainPattern, trainLabel, 50, 20, (5 + 2*b));
+                classify = binarySplitDT.classify(testPattern);
+                confusionMatrix.computeConfusionMatrix(classify, testLabel);
+                confusionMatrix.computeTrueFalse(classify, testLabel);
+                System.out.println();
             }
 
             for(int b = 0; b < 4; b++) {
-                for (int c = 0; c < 6; c++) {
-                    System.out.println("Multi: ");
-                    System.out.println("Splitsize: " + (8 + b*2));
-                    System.out.println("PCA: " + c * 10);
-                    multiSplitDT = new MultiSplitDT();
-                    //multiSplitDT.train(trainPattern, trainLabel, 20, 40, (8 + b*2), c*10);
-                    classify = multiSplitDT.classify(testPattern);
-                    confusionMatrix.computeConfusionMatrix(classify, testLabel);
-                    confusionMatrix.computeTrueFalse(classify, testLabel);
-                    System.out.println();
-                }
+                System.out.println("Multi: ");
+                System.out.println("Splitsize: " + (8 + b*2));
+                multiSplitDT = new MultiSplitDT();
+                multiSplitDT.train(trainPattern, trainLabel, 20, 40, (8 + b*2));
+                classify = multiSplitDT.classify(testPattern);
+                confusionMatrix.computeConfusionMatrix(classify, testLabel);
+                confusionMatrix.computeTrueFalse(classify, testLabel);
+                System.out.println();
             }
         }
     }
@@ -196,12 +194,12 @@ public class Test {
     public void testTheBests() {
         readData = new ReadData();
 
-        String labelPath = "/Users/MatthiasFuchs/Desktop/Testdaten/ID004/All/LabelsAllkonstruiertepass.csv";
-        String patternPath = "/Users/MatthiasFuchs/Desktop/Testdaten/ID004/All/dataAllkonstruiertepass.csv";
+        String labelPath = "/Users/MatthiasFuchs/Desktop/Testdaten/ID004/All/LabelsAllpass.csv";
+        String patternPath = "/Users/MatthiasFuchs/Desktop/Testdaten/ID004/All/dataAllpass.csv";
         dataPass = readData.readCSVs(patternPath, labelPath);
 
-        labelPath = "/Users/MatthiasFuchs/Desktop/Testdaten/ID004/All/LabelsAllkonstruierte.csv";
-        patternPath = "/Users/MatthiasFuchs/Desktop/Testdaten/ID004/All/dataAllkonstruierte.csv";
+        labelPath = "/Users/MatthiasFuchs/Desktop/Testdaten/ID004/All/LabelsAll.csv";
+        patternPath = "/Users/MatthiasFuchs/Desktop/Testdaten/ID004/All/dataAll.csv";
 
         dataAll = readData.readCSVs(patternPath, labelPath);
 
@@ -212,9 +210,9 @@ public class Test {
         }
         System.out.println();
 
-        for(int i = 0; i < dataAll.getLabel().length; i++) {
+        for(int i = 1; i < dataAll.getLabel().length; i++) {
             distribution = computeDistribution(dataAll.getLabel()[i]);
-            System.out.println("Selected Label-Set: " + (i+2));
+            System.out.println("Selected Label-Set: " + (i+1));
             for(int j = 0; j < distribution.length; j++) {
                 System.out.println("Label " + (j+1) + ": " + distribution[j]);
             }
@@ -225,11 +223,11 @@ public class Test {
 
         double[] classify;
 
-        int split = 10;
+        int split = 4;
 
         int[] splitSizesBinary = {};
         int[] splitSizesMulti = {};
-        int[] selectedLabelSets = {1, 3, 4, 6, 7, 8, 9, 10, 11, 12};
+        int[] selectedLabelSets = {1, 2, 5, 7, 8, 9, 10, 11};
         for(int i = 0; i < selectedLabelSets.length; i++) {
             confusionMatrix = new ConfusionMatrix();
 
@@ -241,34 +239,34 @@ public class Test {
                     crossData = crossvalidation.crossvalidate(dataPass.getPattern(), dataPass.getLabel()[0], split);
                     break;
                 case 2:
-                    crossData = crossvalidation.crossvalidate(dataAll.getPattern(), dataAll.getLabel()[0], split);
-                    break;
-                case 3:
                     crossData = crossvalidation.crossvalidate(dataAll.getPattern(), dataAll.getLabel()[1], split);
                     break;
-                case 4:
+                case 3:
                     crossData = crossvalidation.crossvalidate(dataAll.getPattern(), dataAll.getLabel()[2], split);
                     break;
-                case 5:
+                case 4:
                     crossData = crossvalidation.crossvalidate(dataAll.getPattern(), dataAll.getLabel()[3], split);
                     break;
-                case 6:
+                case 5:
                     crossData = crossvalidation.crossvalidate(dataAll.getPattern(), dataAll.getLabel()[4], split);
                     break;
-                case 7:
+                case 6:
                     crossData = crossvalidation.crossvalidate(dataAll.getPattern(), dataAll.getLabel()[5], split);
                     break;
-                case 8:
+                case 7:
                     crossData = crossvalidation.crossvalidate(dataAll.getPattern(), dataAll.getLabel()[6], split);
                     break;
-                case 9:
+                case 8:
                     crossData = crossvalidation.crossvalidate(dataAll.getPattern(), dataAll.getLabel()[7], split);
                     break;
-                case 10:
+                case 9:
                     crossData = crossvalidation.crossvalidate(dataAll.getPattern(), dataAll.getLabel()[8], split);
                     break;
-                case 11:
+                case 10:
                     crossData = crossvalidation.crossvalidate(dataAll.getPattern(), dataAll.getLabel()[9], split);
+                    break;
+                case 11:
+                    crossData = crossvalidation.crossvalidate(dataAll.getPattern(), dataAll.getLabel()[10], split);
                     break;
                 default:
                     System.out.println("Label-Set nicht vorhanden");
@@ -321,7 +319,7 @@ public class Test {
 
                 System.out.println("Binary: ");
                 binarySplitDT = new BinarySplitDT();
-                binarySplitDT.train(trainPattern, trainLabel, 50, 20, splitSizesBinary[i], 0);
+                binarySplitDT.train(trainPattern, trainLabel, 200, 20, 7);
                 classify = binarySplitDT.classify(testPattern);
                 confusionMatrix.computeConfusionMatrix(classify, testLabel);
                 confusionMatrix.computeTrueFalse(classify, testLabel);
@@ -330,7 +328,7 @@ public class Test {
 
                 System.out.println("Multi: ");
                 multiSplitDT = new MultiSplitDT();
-                multiSplitDT.train(trainPattern, trainLabel, 20, 40, splitSizesMulti[i], 0);
+                multiSplitDT.train(trainPattern, trainLabel, 100, 40, 10);
                 classify = multiSplitDT.classify(testPattern);
                 confusionMatrix.computeConfusionMatrix(classify, testLabel);
                 confusionMatrix.computeTrueFalse(classify, testLabel);

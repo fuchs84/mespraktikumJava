@@ -17,22 +17,13 @@ public class BinarySplitDT extends DecisionTree{
     private ArrayList<double[]> preferredFeatures = new ArrayList<>();
 
 
-    public void train (double[][] patterns, double[] labels, int deep, int minNodeSize, int quantifySize, int pca) {
+    public void train (double[][] patterns, double[] labels, int deep, int minNodeSize, int quantifySize) {
         this.minNodeSize = minNodeSize;
-        this.pca = pca;
         patterns = normalisation(patterns);
-
-        if(pca > 0 && pca <= patterns[0].length) {
-            pcaUse = true;
-            patterns = computePCA(patterns, pca);
-        } else {
-            pcaUse = false;
-        }
 
         double[][] merge = merger(patterns, labels);
         double[][] data = transpose(merge);
         this.deep = deep;
-
 
         numberOfInstances = labels.length;
         this.quantifySize = quantifySize;
@@ -240,10 +231,6 @@ public class BinarySplitDT extends DecisionTree{
 
         patterns = normalisation(patterns);
 
-
-        if(pcaUse) {
-            patterns = usePCA(patterns);
-        }
         double[] labels = new double[patterns.length];
         for (int i = 0; i < patterns.length; i++) {
             labels[i] = passTree(patterns[i]);
@@ -279,13 +266,6 @@ public class BinarySplitDT extends DecisionTree{
     public void saveData() {
         try {
             FileWriter fw = new FileWriter("binarySplitDT.csv");
-            if(pcaUse) {
-                fw.append(Boolean.toString(true));
-                savePCA("binarySplitPCA.csv");
-            } else {
-                fw.append(Boolean.toString(false));
-            }
-            fw.append("\n");
             save(root, fw);
             fw.close();
         } catch (IOException e) {
@@ -329,13 +309,7 @@ public class BinarySplitDT extends DecisionTree{
             while ((line = br.readLine()) != null) {
                 data.add(line);
             }
-            if(Boolean.getBoolean(data.get(0))) {
-                loadPCA("binarySplitPCA.csv");
-                pcaUse = true;
-            } else {
-                pcaUse = false;
-            }
-            count = 0;
+            count = - 1;
             this.root = buildWithLoadedData(null, data);
             br.close();
         } catch (FileNotFoundException e) {
