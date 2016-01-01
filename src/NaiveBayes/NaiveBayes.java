@@ -21,35 +21,17 @@ public class NaiveBayes {
     public double[][][] featureprobability;
 
     /**
-     * initialisieren der Trainingsmatrix und der Labelmatrix
-     */
-    public NaiveBayes(){
-        trainMatrix = new double[0][0];
-        trainlabel = new double[0];
-    }
-
-    /**
      * Berechnet die Varianzen und Means der gegebenen Features innerhalb der einzelnen Klassen
      */
     public void train(double[][] patterns, double[] labels) {
-        double [][] temppattern = trainMatrix;
-        double [] templabel = trainlabel;
-        trainMatrix = new double[trainMatrix.length+patterns.length][patterns[0].length];
-        trainlabel = new double[trainlabel.length+labels.length];
-        for (int i = 0; i < temppattern.length; i++) {
-            trainlabel[i] = templabel[i];
-            for (int j = 0; j < trainMatrix[0].length; j++) {
-                trainMatrix[i][j] = temppattern[i][j];
-            }
 
-        }
+        trainMatrix = new double[patterns.length][patterns[0].length];
+        trainlabel = new double[labels.length];
 
-        for (int i = temppattern.length; i < temppattern.length+patterns.length; i++) {
-            trainlabel[i] = labels[i-temppattern.length];
-            for (int j = 0; j < trainMatrix[0].length; j++) {
-                trainMatrix[i][j] = patterns[i-temppattern.length][j];
-            }
 
+        for (int i = 0; i < patterns.length; i++) {
+            trainlabel[i] = labels[i];
+            trainMatrix[i] = patterns[i];
         }
 
         Integer[] numbers = new Integer[trainlabel.length];
@@ -60,6 +42,7 @@ public class NaiveBayes {
 
         //erstellt dein Array mit den auftretenden labeln
         Integer[] labelunique = uniqKeys.toArray(new Integer[uniqKeys.size()]);
+
         featureprobability = new double[uniqKeys.size()][trainMatrix[0].length+2][2];
         //splitte die datenmatrix und Label auf die einzelnen Label auf
         for (int i = 0; i <labelunique.length ; i++) {
@@ -95,8 +78,6 @@ public class NaiveBayes {
 
                 }
             }
-
-
         }
 
     /**
@@ -159,12 +140,8 @@ public class NaiveBayes {
                         z = classprobability.length + 1;
                         break;
                     }
-
                 }
-
             }
-
-
         }
         return featureprobability[(int)extremum][0][0];
     }

@@ -39,11 +39,8 @@ public class Test {
         String patternPath = "/Users/MatthiasFuchs/Desktop/Testdaten/Testdaten_Samples/dataAllpass.csv";
         readData = new ReadData();
         data = readData.readCSVs(patternPath, labelPath);
-        double[][] patterns = data.getPattern();
-        double[] variance = featureSelection.computeVariance(patterns);
-        for(int i = 0; i < variance.length; i++) {
-            System.out.println(variance[i]);
-        }
+        nb = new NaiveBayes();
+        nb.train(data.getPattern(), data.getLabel()[0]);
     }
 
     private boolean isNodePure(double[] labels) {
