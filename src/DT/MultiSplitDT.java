@@ -64,19 +64,20 @@ public class MultiSplitDT extends DecisionTree {
     public MultiSplitNode build (double[][] data, MultiSplitNode parent, int deep) {
         MultiSplitNode node = new MultiSplitNode();
         node.parent = parent;
-        if(data[0].length == 0) {
-            node.setLeaf(true);
-            node.deep = deep;
-            int label = defaultLabel;
-            for(int i = 0; i < entireDistribution.length; i++) {
-                if((double) entireDistribution[i]/(double) numberOfInstances > Math.random() && i != defaultLabel) {
-                    label = i;
-                }
-            }
-            node.setClassLabel((double) label);
-            return node;
-        }
-        else if(this.deep <= deep || minNodeSize > data[0].length) {
+        node.deep = deep;
+//        if(data[0].length == 0) {
+//            node.setLeaf(true);
+//            int label = defaultLabel;
+//            for(int i = 0; i < entireDistribution.length; i++) {
+//                if((double) entireDistribution[i]/(double) numberOfInstances > Math.random() && i != defaultLabel) {
+//                    label = i;
+//                }
+//            }
+//            node.setClassLabel((double) label);
+//            return node;
+//        }
+//        else
+        if(this.deep <= deep || minNodeSize > data[0].length) {
             int[] distribution = computeClassDistribution(data);
             int maxDistribution = Integer.MIN_VALUE;
             int  maxLabel = 0;
@@ -88,21 +89,18 @@ public class MultiSplitDT extends DecisionTree {
                 }
             }
             node.setLeaf(true);
-            node.deep = deep;
             node.setClassLabel(maxLabel);
             node.children = null;
             return node;
         }
         else if(isNodePure(data[data.length-1])) {
             node.setLeaf(true);
-            node.deep = deep;
             node.setClassLabel(data[data.length - 1][0]);
             node.children = null;
             return node;
         }
         else {
             node.setLeaf(false);
-            node.deep = deep;
             double maxIG = Double.NEGATIVE_INFINITY;
             int maxIGFeature = Integer.MIN_VALUE;
             double informationGain;

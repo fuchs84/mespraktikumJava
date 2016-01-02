@@ -129,6 +129,7 @@ public class FeatureSelection {
     }
 
     public double[][] computeVarianceThreshold(double[][] patterns, double threshold) {
+        thresholdFeatures = new ArrayList<>();
         double[] variance = computeVariance(patterns);
         for(int i = 0; i < variance.length; i++) {
             if(variance[i] > threshold) {
@@ -177,7 +178,6 @@ public class FeatureSelection {
     }
 
     public void saveThresholdVariance() {
-        double[][] pca = pcaMatrix.getArray();
         try {
             FileWriter fw = new FileWriter("ThresholdVariance.csv");
             for(int i = 0; i < thresholdFeatures.size(); i++) {
@@ -192,14 +192,15 @@ public class FeatureSelection {
 
 
     public void loadThresholdVariance() {
+        thresholdFeatures = new ArrayList<>();
         try {
             BufferedReader br = new BufferedReader(new FileReader("ThresholdVariance.csv"));
             String line;
             line = br.readLine();
             String[] parts = line.split(",");
-            thresholdFeatures.clear();
             for(int i = 0; i < parts.length; i++) {
                 thresholdFeatures.add(Integer.parseInt(parts[i]));
+                System.out.println(thresholdFeatures.get(i));
             }
             br.close();
         } catch (FileNotFoundException e) {

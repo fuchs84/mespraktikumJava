@@ -38,9 +38,6 @@ public class Test {
         String labelPath = "/Users/MatthiasFuchs/Desktop/Testdaten/Testdaten_Samples/LabelsAllpass.csv";
         String patternPath = "/Users/MatthiasFuchs/Desktop/Testdaten/Testdaten_Samples/dataAllpass.csv";
         readData = new ReadData();
-        data = readData.readCSVs(patternPath, labelPath);
-        nb = new NaiveBayes();
-        nb.train(data.getPattern(), data.getLabel()[0]);
     }
 
     private boolean isNodePure(double[] labels) {

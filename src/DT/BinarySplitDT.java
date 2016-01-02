@@ -14,7 +14,6 @@ public class BinarySplitDT extends DecisionTree{
     private int count;
     private int deep;
 
-    private ArrayList<double[]> preferredFeatures = new ArrayList<>();
 
 
     public void train (double[][] patterns, double[] labels, int deep, int minNodeSize, int quantifySize) {
@@ -41,26 +40,28 @@ public class BinarySplitDT extends DecisionTree{
      * @return Knoten oder Blatt
      */
     public BinarySplitNode build (double[][] data, BinarySplitNode parent, int deep) {
-        BinarySplitNode binarySplitNode = new BinarySplitNode();
-        binarySplitNode.parent = parent;
-        if(data[0].length == 0) {
-            binarySplitNode.setLeaf(true);
-            int label = defaultLabel;
-            for(int i = 0; i < entireDistribution.length; i++) {
-                if((double) entireDistribution[i]/(double) numberOfInstances > Math.random() && i != defaultLabel) {
-                    label = i;
-                }
-            }
-            binarySplitNode.setClassLabel((double) label);
-
-            return binarySplitNode;
-        }
-        else if(isNodePure(data[data.length-1])) {
-            binarySplitNode.setLeaf(true);
-            binarySplitNode.setClassLabel(data[data.length - 1][0]);
-            binarySplitNode.left = null;
-            binarySplitNode.right = null;
-            return binarySplitNode;
+        BinarySplitNode node = new BinarySplitNode();
+        node.parent = parent;
+        node.deep = deep;
+//        if(data[0].length == 0) {
+//            node.setLeaf(true);
+//            int label = defaultLabel;
+//            for(int i = 0; i < entireDistribution.length; i++) {
+//                if((double) entireDistribution[i]/(double) numberOfInstances > Math.random() && i != defaultLabel) {
+//                    label = i;
+//                }
+//            }
+//            node.setClassLabel((double) label);
+//
+//            return node;
+//        }
+//        else
+        if(isNodePure(data[data.length-1])) {
+            node.setLeaf(true);
+            node.setClassLabel(data[data.length - 1][0]);
+            node.left = null;
+            node.right = null;
+            return node;
         }
         else if(this.deep <= deep || minNodeSize > data[0].length) {
             int[] distribution = computeClassDistribution(data);
@@ -73,14 +74,14 @@ public class BinarySplitDT extends DecisionTree{
                     maxLabel = i;
                 }
             }
-            binarySplitNode.setLeaf(true);
-            binarySplitNode.setClassLabel(maxLabel);
-            binarySplitNode.left = null;
-            binarySplitNode.right = null;
-            return binarySplitNode;
+            node.setLeaf(true);
+            node.setClassLabel(maxLabel);
+            node.left = null;
+            node.right = null;
+            return node;
         }
         else {
-            binarySplitNode.setLeaf(false);
+            node.setLeaf(false);
             if(quantifySize < 2) {
                 quantifySize--;
             }
@@ -99,33 +100,24 @@ public class BinarySplitDT extends DecisionTree{
             int minImpurityFeature = Integer.MIN_VALUE;
             for(int i = 0; i < entropyImpurity.length; i++) {
                 if(minImpurity >= entropyImpurity[i][0] && minImpuritySplitDistribution < entropyImpurity[i][3]) {
-                    preferredFeatures.add(entropyImpurity[i]);
                     minImpurity = entropyImpurity[i][0];
                     minImpurityValue = entropyImpurity[i][1];
                     minImpurityFeature = (int) entropyImpurity[i][2];
                     minImpuritySplitDistribution = entropyImpurity[i][3];
                 }
             }
-//            for(int i = 0; i < preferredFeatures.size(); i++) {
-//                double[] info = preferredFeatures.get(i);
-//                System.out.println("Entropy: " + info[0]);
-//                System.out.println("Value: " + info[1]);
-//                System.out.println("Feature: " + info[2]);
-//                System.out.println("Split: " + info[3]);
-//            }
-            preferredFeatures.clear();
 
             usedFeature.add(minImpurityFeature);
 
-            binarySplitNode.setDecisionValueBound(minImpurityValue);
-            binarySplitNode.setDecisionAttribute(minImpurityFeature);
+            node.setDecisionValueBound(minImpurityValue);
+            node.setDecisionAttribute(minImpurityFeature);
             deep++;
             double[][][] newData = splitData(data, minImpurityFeature, minImpurityValue);
 
-            binarySplitNode.left = build(newData[0], binarySplitNode, deep);
-            binarySplitNode.right = build(newData[1], binarySplitNode, deep);
+            node.left = build(newData[0], node, deep);
+            node.right = build(newData[1], node, deep);
         }
-        return binarySplitNode;
+        return node;
     }
 
     /**
