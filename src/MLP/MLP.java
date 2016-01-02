@@ -23,17 +23,8 @@ public class MLP {
     private double[][] desiredOutput;
     private double  entireError = 0.0;
 
-
     private List<Double> desiredOutputDistribution = new LinkedList<Double>();
 
-    /**
-     * Methode trainiert das Netzwerk
-     * @param patterns Train-Patterns
-     * @param labels Train-Labels
-     * @param nHidden Anzahl der zwischen Schichten
-     * @param learningRate Lernrate (zwischen 0.0 und 1.0) legt die Lernintensitaet fest
-     * @param maxIteration Ist die Maximale Anzahl von Wiederholungen auf den Train-Daten
-     */
     public void train(double[][] patterns, double[] labels, int[] nHidden, double learningRate, long maxIteration) {
         nInput = patterns[0].length;
         nOutput = computeMaxLabel(labels);
@@ -85,11 +76,6 @@ public class MLP {
         }
     }
 
-
-
-    /**
-     * Methode initialisiert die Gewichte für die Verbindungen
-     */
     private void initWeights(){
         for (int i = 0; i <= numberOfHiddenlayers; i++) {
             double[][] weightMatrix;
@@ -109,9 +95,6 @@ public class MLP {
         }
     }
 
-    /**
-     * Methode gibt die Gewichte aus
-     */
     public void printWeights() {
         for (int i = 0; i <= numberOfHiddenlayers; i++) {
             double [][] weightMatrix = weights.get(i);
@@ -126,9 +109,6 @@ public class MLP {
         }
     }
 
-    /**
-     * Methode gibt die Werte der Schichten aus
-     */
     public void printLayers() {
         System.out.println("Inputlayer: ");
         for (int i=0; i < input.length; i++) {
@@ -149,9 +129,6 @@ public class MLP {
         }
     }
 
-    /**
-     * Methode berechnet den Gesamtfehler
-     */
     private void calculateEntireError() {
         for(int i = 0; i < actualOutput.length; i++) {
             for(int j = 0; j < actualOutput[0].length; j++) {
@@ -160,13 +137,6 @@ public class MLP {
         }
     }
 
-
-
-    /**
-     * Methode sucht das maximale Label
-     * @param labels Train-Labels
-     * @return maximale Label
-     */
     protected int computeMaxLabel(double[] labels) {
         int maxLabel = 0;
         int numberOfLabels = labels.length;
@@ -178,11 +148,6 @@ public class MLP {
         return maxLabel;
     }
 
-    /**
-     * Methode erweitert die Labels für den Multilayer-Perzeptron-Klassifizierer
-     * @param labels Train-Labels
-     * @return erweiterte Labels
-     */
     private double[][] extendedLabels(double[] labels) {
         int length = computeMaxLabel(labels), value;
         double[][] extendedLabels = new double[labels.length][length];
@@ -194,11 +159,6 @@ public class MLP {
         return extendedLabels;
     }
 
-    /**
-     * Methode normalisiert die Patterns
-     * @param patterns Patterns
-     * @return normalisierte Patterns
-     */
     private double[][] normalisation(double[][] patterns) {
         double[][] newPatterns = new double[patterns.length][patterns[0].length];
         double max, min;
@@ -220,11 +180,6 @@ public class MLP {
         return newPatterns;
     }
 
-    /**
-     * Methode klassifiziert die uebergebenen Patterns
-     * @param patterns Patterns die klassifiziert Werden
-     * @return double-Array mit den jeweiligen Labels
-     */
     public double[] classify(double[][] patterns) {
         patterns = normalisation(patterns);
         double [] labels = new double[patterns.length];
@@ -237,11 +192,6 @@ public class MLP {
         return labels;
     }
 
-    /**
-     * Methode gibt die Zahl des Ausgangsperzeptrons mit dem hoechsten Wert zurück
-     * @param classified Ausgangschicht
-     * @return Perzeptron mit dem hoechsten Wert
-     */
     private int winner(double[] classified) {
         double max = Double.NEGATIVE_INFINITY;
         int index = 0;
@@ -254,11 +204,6 @@ public class MLP {
         return index;
     }
 
-    /**
-     * Methode durchlaeuft das Netzwerk und berechnet die Werte der Ausgabeschicht
-     * @param trainInput Eingabeschicht
-     * @return Ausgabeschicht
-     */
     private double[] passNetwork(double[] trainInput) {
 
         input[0] = 1.0;
