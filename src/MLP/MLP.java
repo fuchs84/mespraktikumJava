@@ -2,7 +2,6 @@ package MLP;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.DoubleSummaryStatistics;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -277,7 +276,7 @@ public class MLP {
             for(int j=0; j<startLayer.length; j++) {
                 targetLayer[i] += weightMatrix[j][i] *startLayer[j];
             }
-            targetLayer[i] = activationFunction("logistic", targetLayer[i]);
+            targetLayer[i] = activationFunction(targetLayer[i]);
         }
         layers.set(0, targetLayer);
 
@@ -292,7 +291,7 @@ public class MLP {
                 for(int j=0; j<startLayer.length; j++) {
                     targetLayer[i] += weightMatrix[j][i] *startLayer[j];
                 }
-                targetLayer[i] = activationFunction("logistic", targetLayer[i]);
+                targetLayer[i] = activationFunction(targetLayer[i]);
             }
             layers.set(h, targetLayer);
         }
@@ -305,38 +304,18 @@ public class MLP {
             for(int j=0; j<startLayer.length; j++) {
                 targetLayer[i] = targetLayer[i] +  weightMatrix[j][i] *startLayer[j];
             }
-            targetLayer[i] = activationFunction("logistic", targetLayer[i]);
+            targetLayer[i] = activationFunction(targetLayer[i]);
         }
         output = targetLayer;
         return output;
     }
 
-    /**
-     * Methode für die Aktivierungsfunktion für die einzelnen Perzeptronen
-     * @param function ausgewaehlte Funktion
-     * @param value zu berechnender Wert
-     * @return Ergebnis der Berechnung
-     */
-    private double activationFunction(String function, double value) {
+    private double activationFunction(double value) {
         double solution = 0.0;
-        if(function.equals("logistic")) {
-            solution = 1.0/(1.0 + Math.exp(-value));
-        } else if (function.equals("step")) {
-            if (value < 0) {
-                solution = 0.0;
-            } else {
-                solution = 1.0;
-            }
-        } else {
-            System.out.println("Keine gueltige Eingabe");
-        }
+        solution = 1.0/(1.0 + Math.exp(-value));
         return solution;
     }
 
-    /**
-     * Methode berechnet die Verteilung der Labels (zur Gewichtung beim Trainieren)
-     * @param desiredOutput Train-Labels
-     */
     private void calculateDistribution(double [][] desiredOutput) {
         double temp = 0.0;
 
@@ -361,12 +340,6 @@ public class MLP {
         }
     }
 
-
-    /**
-     * Methode führt die BackPropagation durch und passt die Gewichte an
-     * @param desiredOutput gewünschter Ausgangswert
-     * @param learningRate Lernrate
-     */
     private void backPropagation(double[] desiredOutput, double learningRate) {
 
         double distributionFactor = 0.0;
