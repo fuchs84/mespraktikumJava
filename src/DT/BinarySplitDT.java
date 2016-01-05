@@ -255,9 +255,9 @@ public class BinarySplitDT extends DecisionTree{
         return classified;
     }
 
-    public void saveData() {
+    public void saveData(String path) {
         try {
-            FileWriter fw = new FileWriter("binarySplitDT.csv");
+            FileWriter fw = new FileWriter(path);
             save(root, fw);
             fw.close();
         } catch (IOException e) {
@@ -293,9 +293,9 @@ public class BinarySplitDT extends DecisionTree{
         }
     }
 
-    public void loadData() {
+    public void loadData(String path) {
         try {
-            BufferedReader br = new BufferedReader(new FileReader("binarySplitDT.csv"));
+            BufferedReader br = new BufferedReader(new FileReader(path));
             ArrayList<String> data = new ArrayList<>();
             String line;
             while ((line = br.readLine()) != null) {

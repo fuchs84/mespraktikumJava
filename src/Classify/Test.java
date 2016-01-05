@@ -188,12 +188,12 @@ public class Test {
     public void testTheBests() {
         readData = new ReadData();
 
-        String labelPath = "/Users/MatthiasFuchs/Desktop/Testdaten/ID004/All/LabelsAllpass.csv";
-        String patternPath = "/Users/MatthiasFuchs/Desktop/Testdaten/ID004/All/dataAllpass.csv";
+        String labelPath = "/Users/MatthiasFuchs/Desktop/Testdaten/ID004/All/LabelsAllkonstruiertepass.csv";
+        String patternPath = "/Users/MatthiasFuchs/Desktop/Testdaten/ID004/All/dataAllkonstruiertepass.csv";
         dataPass = readData.readCSVs(patternPath, labelPath);
 
-        labelPath = "/Users/MatthiasFuchs/Desktop/Testdaten/ID004/All/LabelsAll.csv";
-        patternPath = "/Users/MatthiasFuchs/Desktop/Testdaten/ID004/All/dataAll.csv";
+        labelPath = "/Users/MatthiasFuchs/Desktop/Testdaten/ID004/All/LabelsAllkonstruierte.csv";
+        patternPath = "/Users/MatthiasFuchs/Desktop/Testdaten/ID004/All/dataAllkonstruierte.csv";
 
         dataAll = readData.readCSVs(patternPath, labelPath);
 
@@ -313,7 +313,7 @@ public class Test {
 
                 System.out.println("Binary: ");
                 binarySplitDT = new BinarySplitDT();
-                binarySplitDT.train(trainPattern, trainLabel, 200, 20, 7);
+                binarySplitDT.train(trainPattern, trainLabel, 200, 5, 10);
                 classify = binarySplitDT.classify(testPattern);
                 confusionMatrix.computeConfusionMatrix(classify, testLabel);
                 confusionMatrix.computeTrueFalse(classify, testLabel);
@@ -322,7 +322,7 @@ public class Test {
 
                 System.out.println("Multi: ");
                 multiSplitDT = new MultiSplitDT();
-                multiSplitDT.train(trainPattern, trainLabel, 100, 40, 10);
+                multiSplitDT.train(trainPattern, trainLabel, 100, 10, 10);
                 classify = multiSplitDT.classify(testPattern);
                 confusionMatrix.computeConfusionMatrix(classify, testLabel);
                 confusionMatrix.computeTrueFalse(classify, testLabel);

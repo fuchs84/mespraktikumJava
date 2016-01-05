@@ -38,8 +38,8 @@ public class ReadData {
         }
 
         int offset = 0;
-        int offsetLabels = 0;
-        int offsetPatterns = 2;
+        int offsetLabels = 4;
+        int offsetPatterns = 4;
         String[] labelParts = labelData.get(0).split("\t");
         String[] patternParts = patternData.get(0).split("\t");
         pattern = new double[lineIndex - offset][patternParts.length-offsetPatterns];
