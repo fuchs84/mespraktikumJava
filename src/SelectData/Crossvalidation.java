@@ -1,6 +1,8 @@
 package SelectData;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Created by Sebastian on 12.11.2015.
@@ -30,6 +32,23 @@ public class Crossvalidation {
         data.add(labelist);
         return data;
     }
+
+    public void shuffleData(double[][] patterns, double[][] labels) {
+        // If running on Java 6 or older, use `new Random()` on RHS here
+        Random rnd = ThreadLocalRandom.current();
+        for (int i = patterns.length - 1; i > 0; i--)
+        {
+            int index = rnd.nextInt(i + 1);
+            // Simple swap
+            double[] a = patterns[index];
+            double[] b = labels[index];
+            patterns[index] = patterns[i];
+            labels[index] = labels[index];
+            patterns[i] = a;
+            labels[i] = b;
+        }
+    }
+
 
     public ArrayList<ArrayList> randomDataSplit(double [][] inputpattern, double [] inputlabel, double percent) {
         ArrayList<ArrayList> data = new ArrayList<>();
