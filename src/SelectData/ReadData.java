@@ -67,6 +67,7 @@ public class ReadData {
         return new Data(label, pattern);
     }
 
+
     public int[] readStepCSV(String path) {
         int[] steps;
         ArrayList<String> stepData = new ArrayList<>();

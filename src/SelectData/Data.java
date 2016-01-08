@@ -1,11 +1,15 @@
 package SelectData;
 
+import java.util.ArrayList;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
+
 /**
  * Created by MatthiasFuchs on 12.11.15.
  */
 public final class Data {
-    private final double[][] label;
-    private final double[][] pattern;
+    private double[][] label;
+    private double[][] pattern;
     public double [][] testPattern;
     public double [][] testLabel;
     public double [][] trainLabel;
@@ -16,6 +20,22 @@ public final class Data {
         this.label = transpose(label);
         this.pattern = pattern;
         splitData(pattern, label);
+    }
+
+    public void shuffleData() {
+        this.label = transpose(label);
+        Random rnd = ThreadLocalRandom.current();
+        for (int i = pattern.length - 1; i > 0; i--)
+        {
+            int index = rnd.nextInt(i + 1);
+            double[] a = pattern[index];
+            double[] b = label[index];
+            pattern[index] = pattern[i];
+            label[index] = label[index];
+            pattern[i] = a;
+            label[i] = b;
+        }
+        this.label = transpose(label);
     }
 
     private void splitData(double[][] pattern, double[][] label) {
@@ -43,7 +63,6 @@ public final class Data {
             for (int j = 0; j < transpose[0].length; j++) {
                 transpose[i][j] = data[j][i];
             }
-
         }
         return transpose;
     }
@@ -54,5 +73,13 @@ public final class Data {
 
     public double[][] getPattern() {
         return pattern;
+    }
+
+    public void setLabel(double[][] label) {
+        this.label = label;
+    }
+
+    public void setPattern(double[][] pattern) {
+        this.pattern = pattern;
     }
 }

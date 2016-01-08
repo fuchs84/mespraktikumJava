@@ -165,6 +165,5 @@ public class ConfusionMatrix {
         System.out.printf("Percent %.2f", ((double) trueMulti / (trueMulti + falseMulti)));
         System.out.println();
         System.out.println();
-
     }
 }

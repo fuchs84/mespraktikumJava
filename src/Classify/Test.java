@@ -33,11 +33,8 @@ public class Test {
 
 
     public void classifierTest() {
-        featureSelection = new FeatureSelection();
 
-        String labelPath = "/Users/MatthiasFuchs/Desktop/Testdaten/Testdaten_Samples/LabelsAllpass.csv";
-        String patternPath = "/Users/MatthiasFuchs/Desktop/Testdaten/Testdaten_Samples/dataAllpass.csv";
-        readData = new ReadData();
+
     }
 
     private boolean isNodePure(double[] labels) {
@@ -58,7 +55,6 @@ public class Test {
 
         labelPath = "/Users/MatthiasFuchs/Desktop/Testdaten/Testdaten_Samples/LabelsAll.csv";
         patternPath = "/Users/MatthiasFuchs/Desktop/Testdaten/Testdaten_Samples/dataAll.csv";
-
         dataAll = readData.readCSVs(patternPath, labelPath);
 
         double[] distribution = computeDistribution(dataPass.getLabel()[0]);
@@ -187,15 +183,22 @@ public class Test {
 
     public void testTheBests() {
         readData = new ReadData();
+        featureSelection = new FeatureSelection();
+
 
         String labelPath = "/Users/MatthiasFuchs/Desktop/Testdaten/ID004/All/LabelsAllkonstruiertepass.csv";
         String patternPath = "/Users/MatthiasFuchs/Desktop/Testdaten/ID004/All/dataAllkonstruiertepass.csv";
         dataPass = readData.readCSVs(patternPath, labelPath);
+        //dataPass.setPattern(featureSelection.computePCA(dataPass.getPattern(), 10));
+        dataPass.shuffleData();
 
         labelPath = "/Users/MatthiasFuchs/Desktop/Testdaten/ID004/All/LabelsAllkonstruierte.csv";
         patternPath = "/Users/MatthiasFuchs/Desktop/Testdaten/ID004/All/dataAllkonstruierte.csv";
 
         dataAll = readData.readCSVs(patternPath, labelPath);
+        //dataAll.setPattern(featureSelection.computePCA(dataPass.getPattern(), 10));
+        dataAll.shuffleData();
+
 
         double[] distribution = computeDistribution(dataPass.getLabel()[0]);
         System.out.println("Selected Label-Set: " + 1);
@@ -300,6 +303,15 @@ public class Test {
                 for (int l = 0; l < distribution.length; l++) {
                     System.out.println("Label " + (l + 1) + ": " + distribution[l]);
                 }
+                System.out.println();
+
+                System.out.println("KNN: ");
+                knn = new KNN();
+                knn.train(trainPattern, trainLabel);
+                classify = knn.classify(5, testPattern, "Manhattan");
+                confusionMatrix.computeConfusionMatrix(classify, testLabel);
+                confusionMatrix.computeTrueFalse(classify, testLabel);
+                confusionMatrix.resultsKNN(classify, testLabel);
                 System.out.println();
 
                 System.out.println("KNN: ");

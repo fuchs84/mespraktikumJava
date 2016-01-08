@@ -1,5 +1,5 @@
 import Classify.Test;
-
+import WekaAlgorithm.Controller;
 
 
 /**
@@ -7,8 +7,13 @@ import Classify.Test;
  */
 public class Main {
     private static Test test;
+    private static Controller controller;
     public static void main(String[] args)  {
-        test = new Test();
-        test.testTheBests();
+        controller = new Controller();
+        String patternPathAll = "/Users/MatthiasFuchs/Desktop/Testdaten/Comma-Sep/konstriertdataweka.csv";
+        String labelPathAll = "/Users/MatthiasFuchs/Desktop/Testdaten/Comma-Sep/konstriertdatawekalabel.csv";
+        String patternPathPass = "/Users/MatthiasFuchs/Desktop/Testdaten/Comma-Sep/konstriertdatawekapass.csv";
+        String labelPathPass = "/Users/MatthiasFuchs/Desktop/Testdaten/Comma-Sep/konstriertdatawekalabelpass.csv";
+        controller.train(patternPathAll, labelPathAll, patternPathPass, labelPathPass);
     }
 }
