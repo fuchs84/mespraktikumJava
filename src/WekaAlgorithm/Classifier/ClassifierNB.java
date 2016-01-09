@@ -1,21 +1,18 @@
 package WekaAlgorithm.Classifier;
 
+
 import weka.classifiers.Classifier;
-import weka.classifiers.trees.J48;
+import weka.classifiers.bayes.NaiveBayes;
 import weka.core.Instances;
 
 /**
- * Created by MatthiasFuchs on 08.01.16.
+ * Created by MatthiasFuchs on 09.01.16.
  */
+public class ClassifierNB extends AbstractClassifier implements Runnable {
+    private NaiveBayes classifier;
 
-public class ClassifierJ48 extends AbstractClassifier implements Runnable {
-    private J48 classifier;
-
-    public ClassifierJ48() throws Exception {
-        String[] options = new String[1];
-        options[0] = "-U";
-        classifier = new J48();
-        classifier.setOptions(options);
+    public ClassifierNB() throws Exception {
+        classifier = new NaiveBayes();
     }
 
     public void train() throws Exception{

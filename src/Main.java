@@ -14,6 +14,7 @@ public class Main {
         String labelPathAll = "/Users/MatthiasFuchs/Desktop/Testdaten/Comma-Sep/konstriertdatawekalabel.csv";
         String patternPathPass = "/Users/MatthiasFuchs/Desktop/Testdaten/Comma-Sep/konstriertdatawekapass.csv";
         String labelPathPass = "/Users/MatthiasFuchs/Desktop/Testdaten/Comma-Sep/konstriertdatawekalabelpass.csv";
-        controller.train(patternPathAll, labelPathAll, patternPathPass, labelPathPass);
+        controller.init(patternPathAll, labelPathAll, patternPathPass, labelPathPass);
+        controller.evaluation("crossvalidation");
     }
 }

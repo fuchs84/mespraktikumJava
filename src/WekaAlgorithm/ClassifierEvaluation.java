@@ -17,7 +17,6 @@ public class ClassifierEvaluation {
         evaluation.crossValidateModel(classifier, instances, split, new Random(1));
         System.out.println("Cross-Validation:");
         System.out.println(evaluation.toSummaryString());
-        System.out.println(evaluation.toClassDetailsString());
         System.out.println(evaluation.toMatrixString());
     }
 }

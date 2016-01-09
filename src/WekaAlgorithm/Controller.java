@@ -1,34 +1,49 @@
 package WekaAlgorithm;
 
+import WekaAlgorithm.Classifier.AbstractClassifier;
 import WekaAlgorithm.Classifier.ClassifierJ48;
 import weka.core.Instances;
+
+import java.util.ArrayList;
 
 /**
  * Created by MatthiasFuchs on 08.01.16.
  */
 public class Controller {
     private DataGenerator dataGenerator;
-    private ClassifierJ48[] j48s;
+    private ArrayList<AbstractClassifier> classifiers;
+    private int numberOfClassifiers;
 
+    Instances[] allInstances;
+    Instances[] passInstances;
 
     public Controller() {
         dataGenerator = new DataGenerator();
     }
 
-    public void train(String patternPathAll, String labelPathAll, String patternPathPass, String labelPathPass) {
+    public void init(String patternPathAll, String labelPathAll, String patternPathPass, String labelPathPass) {
         try {
-            Instances[] allInstances = dataGenerator.buildTrain(patternPathAll, labelPathAll);
-            Instances[] passInstances = dataGenerator.buildTrain(patternPathPass, labelPathPass);
-            j48s = new ClassifierJ48[allInstances.length + passInstances.length];
-            for(int i = 0; i < j48s.length; i++) {
-                j48s[i] = new ClassifierJ48();
-                j48s[i].setMode(false);
-                if(i < allInstances.length) {
-                    j48s[i].setInstances(allInstances[i]);
+            passInstances = dataGenerator.buildTrain(patternPathPass, labelPathPass);
+            allInstances = dataGenerator.buildTrain(patternPathAll, labelPathAll);
+            numberOfClassifiers = allInstances.length + passInstances.length;
+            classifiers = new ArrayList<>();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void train() {
+        try {
+            for(int i = 0; i < numberOfClassifiers; i++) {
+                AbstractClassifier classifier = new ClassifierJ48();
+                classifier.setMode(false);
+                if(i < passInstances.length) {
+                    classifier.setInstances(passInstances[i]);
                 } else {
-                    j48s[i].setInstances(passInstances[i-allInstances.length]);
+                    classifier.setInstances(allInstances[i - passInstances.length]);
                 }
-                j48s[i].start();
+                classifiers.add(classifier);
+                new Thread(classifier).start();
                 System.out.println(i);
             }
         } catch (Exception e) {
@@ -37,13 +52,14 @@ public class Controller {
     }
 
     public void classify(String patternPath) {
-        double[][] labels = new double[j48s.length][];
+        double[][] labels = new double[numberOfClassifiers][];
         try {
             Instances instances = dataGenerator.buildClassify(patternPath);
 
-            for(int i = 0; i < j48s.length; i++) {
-                j48s[i].setInstances(instances);
-                labels[i] = j48s[i].classify();
+            for(int i = 0; i < numberOfClassifiers; i++) {
+                AbstractClassifier classifier = classifiers.get(i);
+                classifier.setInstances(instances);
+                labels[i] = classifier.classify();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -51,6 +67,26 @@ public class Controller {
     }
 
     public void evaluation(String type) {
+        try {
+            ClassifierEvaluation eval = new ClassifierEvaluation();
+            if(type.equals("crossvalidation")) {
+                for(int i = 0; i < numberOfClassifiers; i++) {
+                    AbstractClassifier classifier = new ClassifierJ48();
+                    if(i < passInstances.length) {
+                        eval.crossValidation(classifier.getClassifier(), 10, passInstances[i]);
+                    } else {
+                        eval.crossValidation(classifier.getClassifier(), 10, allInstances[i - passInstances.length]);
+                    }
+                }
+            } else if(type.equals("traindata")) {
 
+            } else if(type.equals("testdata")) {
+
+            } else if(type.equals("percentsplit")) {
+
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
