@@ -33,18 +33,10 @@ public class ClassifierNB extends AbstractClassifier implements Runnable {
 
     @Override
     public void run() {
-        if(mode) {
-            try {
-                classify();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else {
-            try {
-                train();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        try {
+            train();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

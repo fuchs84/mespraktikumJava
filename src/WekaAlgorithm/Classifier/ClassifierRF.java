@@ -1,20 +1,19 @@
 package WekaAlgorithm.Classifier;
 
 import weka.classifiers.Classifier;
-import weka.classifiers.trees.J48;
-import weka.core.Instances;
+import weka.classifiers.trees.RandomForest;
 
 /**
- * Created by MatthiasFuchs on 08.01.16.
+ * Created by MatthiasFuchs on 10.01.16.
  */
+public class ClassifierRF extends AbstractClassifier implements Runnable{
+    private RandomForest classifier;
 
-public class ClassifierJ48 extends AbstractClassifier implements Runnable {
-    private J48 classifier;
-
-    public ClassifierJ48() throws Exception {
-        String[] options = new String[1];
-        options[0] = "-U";
-        classifier = new J48();
+    public ClassifierRF() throws Exception {
+        String[] options = new String[2];
+        options[0] = "-I";
+        options[1] = "20";
+        classifier = new RandomForest();
         classifier.setOptions(options);
     }
 

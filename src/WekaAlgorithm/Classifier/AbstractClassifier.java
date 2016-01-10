@@ -7,13 +7,8 @@ import weka.core.Instances;
  * Created by MatthiasFuchs on 09.01.16.
  */
 public abstract class AbstractClassifier implements Runnable {
-    protected boolean mode = false;
     protected Instances instances;
     protected double[] classified;
-
-    public void setMode(boolean mode) {
-        this.mode = mode;
-    }
 
     public void setInstances(Instances instances) {
         this.instances = instances;
