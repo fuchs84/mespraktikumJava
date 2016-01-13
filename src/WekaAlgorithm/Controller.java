@@ -1,9 +1,6 @@
 package WekaAlgorithm;
 
-import WekaAlgorithm.Classifier.AbstractClassifier;
-import WekaAlgorithm.Classifier.ClassifierJ48;
-import WekaAlgorithm.Classifier.ClassifierNB;
-import WekaAlgorithm.Classifier.ClassifierRF;
+import WekaAlgorithm.Classifier.*;
 import weka.core.Instances;
 
 import java.io.FileWriter;
@@ -13,13 +10,28 @@ import java.util.ArrayList;
 /**
  * Created by MatthiasFuchs on 08.01.16.
  */
+
+/**
+ {{"AdaBoost", "AdaBoost", "AdaBoost", "AdaBoost", "AdaBoost"
+ , "AdaBoost", "AdaBoost", "AdaBoost", "AdaBoost", "AdaBoost", "AdaBoost"},
+ {"DecisionTree", "DecisionTree","DecisionTree","DecisionTree","DecisionTree","DecisionTree","DecisionTree",
+ "DecisionTree","DecisionTree","DecisionTree","DecisionTree"},
+ {"RandomForest","RandomForest","RandomForest","RandomForest", "RandomForest","RandomForest", "RandomForest",
+ "RandomForest","RandomForest","RandomForest","RandomForest",},
+ {"NaiveBayes","NaiveBayes","NaiveBayes","NaiveBayes","NaiveBayes","NaiveBayes","NaiveBayes","NaiveBayes",
+ "NaiveBayes","NaiveBayes","NaiveBayes"},
+ {"SMO","SMO","SMO","SMO","SMO","SMO","SMO","SMO",
+ "SMO","SMO","SMO"}};
+ */
 public class Controller {
     private DataGenerator dataGenerator;
     private ArrayList<AbstractClassifier> classifiers;
     private int numberOfClassifiers;
     private boolean built = false;
-    private String[] selectedClassifiers = {"NaiveBayes", "NaiveBayes", "DecisionTree", "DecisionTree", "DecisionTree"
-            , "DecisionTree", "DecisionTree", "RandomForest", "DecisionTree", "DecisionTree", "DecisionTree"};
+    private String[] selectedClassifiers = {"AdaBoost", "AdaBoost", "AdaBoost", "AdaBoost", "AdaBoost"
+            , "AdaBoost", "AdaBoost", "AdaBoost", "AdaBoost", "AdaBoost", "AdaBoost"};
+
+    private String path = "evaluationSMO.txt";
 
     Instances[] allInstances;
     Instances[] passInstances;
@@ -37,6 +49,7 @@ public class Controller {
             e.printStackTrace();
         }
     }
+
 
     private void buildStructure() throws Exception {
         numberOfClassifiers = allInstances.length + passInstances.length;
@@ -56,6 +69,26 @@ public class Controller {
                     System.out.println("RandomForest");
                     classifier = new ClassifierRF();
                     classifiers.add(classifier);
+                } else if (selectedClassifiers[i].equals("MultilayerPerceptron")) {
+                    System.out.println("MultilayerPerceptron");
+                    classifier = new ClassifierMLP();
+                    classifiers.add(classifier);
+                } else if (selectedClassifiers[i].equals("AdaBoost")) {
+                    System.out.println("AdaBoost");
+                    classifier = new ClassifierAB();
+                    classifiers.add(classifier);
+                } else if (selectedClassifiers[i].equals("SMO")) {
+                    System.out.println("SMO");
+                    classifier = new ClassifierSMO();
+                    classifiers.add(classifier);
+                } else if (selectedClassifiers[i].equals("NBTree")) {
+                    System.out.println("NBTree");
+                    classifier = new ClassifierNBT();
+                    classifiers.add(classifier);
+                } else if (selectedClassifiers[i].equals("KNN")) {
+                    System.out.println("KNN");
+                    classifier = new ClassifierNBT();
+                    classifiers.add(classifier);
                 }
             }
             built = false;
@@ -67,14 +100,14 @@ public class Controller {
     public void train() {
         try {
             for(int i = 0; i < numberOfClassifiers; i++) {
-                AbstractClassifier classifier = new ClassifierJ48();
+                AbstractClassifier classifier = classifiers.get(i);
                 if(i < passInstances.length) {
                     classifier.setInstances(passInstances[i]);
                 } else {
                     classifier.setInstances(allInstances[i - passInstances.length]);
                 }
                 classifier.train();
-                classifiers.add(classifier);
+                classifiers.set(i, classifier);
             }
             built = true;
         } catch (Exception e) {
@@ -90,10 +123,12 @@ public class Controller {
                 train();
             }
             for(int i = 0; i < numberOfClassifiers; i++) {
+
                 AbstractClassifier classifier = classifiers.get(i);
                 classifier.setInstances(instances);
                 labels[i] = classifier.classify();
             }
+            dataGenerator.saveResults(labels);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -101,31 +136,35 @@ public class Controller {
 
     public void evaluation(String type) {
         try {
-            FileWriter fw = new FileWriter("evaluation.txt");
-
+            StringBuilder stringBuilder = new StringBuilder();
             ClassifierEvaluation eval = new ClassifierEvaluation();
             if(type.equals("crossValidation")) {
                 for(int i = 0; i < numberOfClassifiers; i++) {
                     AbstractClassifier classifier = classifiers.get(i);
-                    fw.append(selectedClassifiers[i] + "\n");
+                    stringBuilder.append("Fehlerlabel: " + (i+1) + "\n");
+                    stringBuilder.append(selectedClassifiers[i] + "\n");
                     if(i < passInstances.length) {
-                        eval.crossValidation(classifier.getClassifier(), 10, passInstances[i], fw);
+                        eval.crossValidation(classifier.getClassifier(), 10, passInstances[i], stringBuilder);
                     } else {
-                        eval.crossValidation(classifier.getClassifier(), 10, allInstances[i - passInstances.length], fw);
+                        eval.crossValidation(classifier.getClassifier(), 10, allInstances[i - passInstances.length], stringBuilder);
                     }
-                    fw.append("\n"+ "\n");
+                    stringBuilder.append("\n" + "\n");
                 }
             } else if(type.equals("percentageSplit")) {
                 for(int i = 0; i < numberOfClassifiers; i++) {
                     AbstractClassifier classifier = classifiers.get(i);
+                    stringBuilder.append("Fehlerlabel: " + (i+1) + "\n");
+                    stringBuilder.append(selectedClassifiers[i] + "\n");
                     if(i < passInstances.length) {
-                        eval.percentageSplit(classifier.getClassifier(), passInstances[i], fw);
+                        eval.percentageSplit(classifier.getClassifier(), passInstances[i], stringBuilder);
                     } else {
-                        eval.percentageSplit(classifier.getClassifier(), allInstances[i - passInstances.length], fw);
+                        eval.percentageSplit(classifier.getClassifier(), allInstances[i - passInstances.length], stringBuilder);
                     }
-                    fw.append("\n"+ "\n");
+                    stringBuilder.append("\n" + "\n");
                 }
             }
+            FileWriter fw = new FileWriter(path);
+            fw.append(stringBuilder);
             fw.close();
         } catch (Exception e) {
             e.printStackTrace();

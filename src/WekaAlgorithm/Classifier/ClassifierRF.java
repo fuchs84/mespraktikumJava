@@ -12,7 +12,7 @@ public class ClassifierRF extends AbstractClassifier implements Runnable{
     public ClassifierRF() throws Exception {
         String[] options = new String[2];
         options[0] = "-I";
-        options[1] = "20";
+        options[1] = "50";
         classifier = new RandomForest();
         classifier.setOptions(options);
     }
@@ -24,7 +24,7 @@ public class ClassifierRF extends AbstractClassifier implements Runnable{
     public double[] classify() throws Exception {
         classified = new double[instances.numInstances()];
         for(int i = 0; i < instances.numInstances(); i++) {
-            classified[i] = classifier.classifyInstance(instances.instance(i));
+            classified[i] = classifier.classifyInstance(instances.instance(i))+1;
         }
         return classified;
     }

@@ -13,17 +13,15 @@ import java.util.Random;
  */
 public class ClassifierEvaluation {
     private Evaluation evaluation;
-    public void crossValidation(Classifier classifier, int split, Instances instances, FileWriter fw) throws Exception {
+    public void crossValidation(Classifier classifier, int split, Instances instances, StringBuilder stringBuilder) throws Exception {
         evaluation = new Evaluation(instances);
         evaluation.crossValidateModel(classifier, instances, split, new Random(1));
-        System.out.println("Cross-Validation: ");
-        fw.append("Cross-Validation: " + "\n");
-        System.out.println(evaluation.toSummaryString());
-        fw.append(evaluation.toSummaryString() + "\n");
-        System.out.println(evaluation.toMatrixString());
-        fw.append(evaluation.toMatrixString() + "\n");
+        stringBuilder.append("Cross-Validation: " + "\n");
+        stringBuilder.append(evaluation.toSummaryString() + "\n");
+        stringBuilder.append(evaluation.toMatrixString() + "\n");
     }
-    public void percentageSplit(Classifier classifier, Instances instances, FileWriter fw) throws Exception {
+
+    public void percentageSplit(Classifier classifier, Instances instances, StringBuilder stringBuilder) throws Exception {
         double percent = 66.6;
         int trainSize = (int) Math.round(instances.numInstances() * percent / 100);
         int testSize = instances.numInstances() - trainSize;
@@ -31,11 +29,8 @@ public class ClassifierEvaluation {
         Instances testData = new Instances(instances, trainSize, testSize);
         Evaluation evaluation = new Evaluation(trainData);
         evaluation.evaluateModel(classifier, testData);
-        System.out.println("Percentage-Split: ");
-        fw.append("Percentage-Split: " + "\n");
-        System.out.println(evaluation.toSummaryString());
-        fw.append(evaluation.toSummaryString() + "\n");
-        System.out.println(evaluation.toMatrixString());
-        fw.append(evaluation.toMatrixString() + "\n");
+        stringBuilder.append("Percentage-Split: " + "\n");
+        stringBuilder.append(evaluation.toSummaryString() + "\n");
+        stringBuilder.append(evaluation.toMatrixString() + "\n");
     }
 }

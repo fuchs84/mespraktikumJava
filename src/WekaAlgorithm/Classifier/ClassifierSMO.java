@@ -1,18 +1,16 @@
 package WekaAlgorithm.Classifier;
 
-
 import weka.classifiers.Classifier;
-import weka.classifiers.bayes.NaiveBayes;
-import weka.core.Instances;
+import weka.classifiers.functions.SMO;
 
 /**
- * Created by MatthiasFuchs on 09.01.16.
+ * Created by MatthiasFuchs on 13.01.16.
  */
-public class ClassifierNB extends AbstractClassifier implements Runnable {
-    private NaiveBayes classifier;
+public class ClassifierSMO extends AbstractClassifier{
+    private SMO classifier;
 
-    public ClassifierNB() throws Exception {
-        classifier = new NaiveBayes();
+    public ClassifierSMO() throws Exception {
+        classifier = new SMO();
     }
 
     public void train() throws Exception{

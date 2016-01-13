@@ -1,18 +1,16 @@
 package WekaAlgorithm.Classifier;
 
-
 import weka.classifiers.Classifier;
-import weka.classifiers.bayes.NaiveBayes;
-import weka.core.Instances;
+import weka.classifiers.functions.MultilayerPerceptron;
 
 /**
- * Created by MatthiasFuchs on 09.01.16.
+ * Created by MatthiasFuchs on 12.01.16.
  */
-public class ClassifierNB extends AbstractClassifier implements Runnable {
-    private NaiveBayes classifier;
+public class ClassifierMLP extends AbstractClassifier{
+    private MultilayerPerceptron classifier;
 
-    public ClassifierNB() throws Exception {
-        classifier = new NaiveBayes();
+    public ClassifierMLP() throws Exception {
+        classifier = new MultilayerPerceptron();
     }
 
     public void train() throws Exception{

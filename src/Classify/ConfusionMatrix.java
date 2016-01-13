@@ -14,6 +14,12 @@ public class ConfusionMatrix {
     private int falseKNN = 0;
     private int trueMulti = 0;
     private int falseMulti = 0;
+    private int[][] matrixNB = new int[3][3];
+    private int[][] matrixMLP = new int[3][3];
+    private int trueNB = 0;
+    private int falseNB = 0;
+    private int trueMLP = 0;
+    private int falseMLP = 0;
 
     public void computeConfusionMatrix(double[] output, double[] desiredOutput) {
         if (output.length != desiredOutput.length) {
@@ -123,47 +129,107 @@ public class ConfusionMatrix {
         }
     }
 
-    public void printEntireResults() {
-        System.out.println("Confusion-Matrix KNN: ");
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                System.out.printf("%6d ", matrixKNN[i][j]);
-            }
-            System.out.println();
+    public void resultsNB(double[] output, double[] desiredOutput){
+        int tempDesired;
+        int tempOutput;
+        for (int h = 0; h < desiredOutput.length; h++){
+            tempDesired = (int) desiredOutput[h];
+            tempOutput = (int) output[h];
+            matrixNB[tempDesired-1][tempOutput-1]++;
         }
-        System.out.println("Results KNN: ");
-        System.out.println("True: " + trueKNN);
-        System.out.println("False: " + falseKNN);
-        System.out.printf("Percent %.2f", ((double) trueKNN / (trueKNN + falseKNN)));
-        System.out.println();
-        System.out.println();
+        for (int i = 0; i < output.length; i++) {
+            if(output[i] == desiredOutput[i]) {
+                trueNB++;
+            } else {
+                falseNB++;
+            }
+        }
+    }
 
-        System.out.println("Confusion-Matrix Binary: ");
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                System.out.printf("%6d ", matrixBinary[i][j]);
-            }
-            System.out.println();
+    public void resultsMLP(double[] output, double[] desiredOutput){
+        int tempDesired;
+        int tempOutput;
+        for (int h = 0; h < desiredOutput.length; h++){
+            tempDesired = (int) desiredOutput[h];
+            tempOutput = (int) output[h];
+            matrixMLP[tempDesired-1][tempOutput-1]++;
         }
-        System.out.println("Results Binary: ");
-        System.out.println("True: " + trueBinary);
-        System.out.println("False: " + falseBinary);
-        System.out.printf("Percent %.2f", ((double) trueBinary / (trueBinary + falseBinary)));
-        System.out.println();
-        System.out.println();
+        for (int i = 0; i < output.length; i++) {
+            if(output[i] == desiredOutput[i]) {
+                trueMLP++;
+            } else {
+                falseMLP++;
+            }
+        }
+    }
 
-        System.out.println("Confusion-Matrix Multi: ");
+
+    public void printEntireResults(StringBuilder stringBuilder) {
+        String temp;
+        stringBuilder.append("Confusion-Matrix KNN: " + "\n");
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                System.out.printf("%6d ", matrixMulti[i][j]);
+                temp = String.format("%6d ", matrixKNN[i][j]);
+                stringBuilder.append(temp);
+
+            }
+            stringBuilder.append("\n");
+        }
+        stringBuilder.append("Results KNN: " + "\n");
+        stringBuilder.append("True: " + trueKNN + "\n");
+        stringBuilder.append("False: " + falseKNN + "\n");
+        stringBuilder.append("Percent: " + ((double) trueKNN / (trueKNN + falseKNN)) + "\n\n\n");
+
+        stringBuilder.append("Confusion-Matrix Binary-DT: " + "\n");
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                temp = String.format("%6d ", matrixBinary[i][j]);
+                stringBuilder.append(temp);
             }
             System.out.println();
         }
-        System.out.println("Results Multi: ");
-        System.out.println("True: " + trueMulti);
-        System.out.println("False: " + falseMulti);
-        System.out.printf("Percent %.2f", ((double) trueMulti / (trueMulti + falseMulti)));
-        System.out.println();
-        System.out.println();
+        stringBuilder.append("Results Binary-DT: " + "\n");
+        stringBuilder.append("True: " + trueBinary + "\n");
+        stringBuilder.append("False: " + falseBinary + "\n");
+        stringBuilder.append("Percent: " + ((double) trueBinary / (trueBinary + falseBinary)) + "\n\n\n");
+
+        stringBuilder.append("Confusion-Matrix Multi-DT: " + "\n");
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                temp = String.format("%6d ", matrixMulti[i][j]);
+                stringBuilder.append(temp);
+            }
+            stringBuilder.append("\n");
+        }
+        stringBuilder.append("Results Multi-DT: " + "\n");
+        stringBuilder.append("True: " + trueMulti + "\n");
+        stringBuilder.append("False: " + falseMulti + "\n");
+        stringBuilder.append("Percent: " + ((double) trueMulti / (trueMulti + falseMulti)) + "\n\n\n");
+
+        stringBuilder.append("Confusion-Matrix NaiveBayes: " + "\n");
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                temp = String.format("%6d ", matrixNB[i][j]);
+                stringBuilder.append(temp);
+            }
+            stringBuilder.append("\n");
+        }
+        stringBuilder.append("Results NaiveBayes: " + "\n");
+        stringBuilder.append("True: " + trueNB + "\n");
+        stringBuilder.append("False: " + falseNB + "\n");
+        stringBuilder.append("Percent: " + ((double) trueNB / (trueNB + falseNB)) + "\n\n\n");
+
+        stringBuilder.append("Confusion-Matrix MLP: " + "\n");
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                temp = String.format("%6d ", matrixMLP[i][j]);
+                stringBuilder.append(temp);
+            }
+            stringBuilder.append("\n");
+        }
+        stringBuilder.append("Results MLP: " + "\n");
+        stringBuilder.append("True: " + trueMLP + "\n");
+        stringBuilder.append("False: " + falseMLP + "\n");
+        stringBuilder.append("Percent: " + ((double) trueMLP / (trueMLP + falseMLP)) + "\n\n\n");
     }
 }

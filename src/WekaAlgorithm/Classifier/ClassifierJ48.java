@@ -25,7 +25,7 @@ public class ClassifierJ48 extends AbstractClassifier implements Runnable {
     public double[] classify() throws Exception {
         classified = new double[instances.numInstances()];
         for(int i = 0; i < instances.numInstances(); i++) {
-            classified[i] = classifier.classifyInstance(instances.instance(i));
+            classified[i] = classifier.classifyInstance(instances.instance(i))+1;
         }
         return classified;
     }

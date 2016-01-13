@@ -1,18 +1,17 @@
 package WekaAlgorithm.Classifier;
 
-
 import weka.classifiers.Classifier;
-import weka.classifiers.bayes.NaiveBayes;
-import weka.core.Instances;
+import weka.classifiers.meta.AdaBoostM1;
+import weka.classifiers.meta.MultiBoostAB;
 
 /**
- * Created by MatthiasFuchs on 09.01.16.
+ * Created by MatthiasFuchs on 12.01.16.
  */
-public class ClassifierNB extends AbstractClassifier implements Runnable {
-    private NaiveBayes classifier;
+public class ClassifierAB extends AbstractClassifier {
+    private MultiBoostAB classifier;
 
-    public ClassifierNB() throws Exception {
-        classifier = new NaiveBayes();
+    public ClassifierAB() throws Exception {
+        classifier = new MultiBoostAB();
     }
 
     public void train() throws Exception{

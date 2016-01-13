@@ -40,14 +40,14 @@ public class ReadData {
         int offset = 0;
         int offsetLabels = 4;
         int offsetPatterns = 4;
-        String[] labelParts = labelData.get(0).split("\t");
-        String[] patternParts = patternData.get(0).split("\t");
+        String[] labelParts = labelData.get(0).split(",");
+        String[] patternParts = patternData.get(0).split(",");
         pattern = new double[lineIndex - offset][patternParts.length-offsetPatterns];
         label = new double[lineIndex - offset][labelParts.length-offsetLabels];
 
         for(int i = offset; i < lineIndex; i++) {
-            patternParts = patternData.get(i).split("\t");
-            labelParts = labelData.get(i).split("\t");
+            patternParts = patternData.get(i).split(",");
+            labelParts = labelData.get(i).split(",");
             if(pattern[0].length > label[0].length) {
                 for(int j = 0; j < pattern[0].length; j++) {
                     pattern[i-offset][j] = Double.parseDouble(patternParts[j+offsetPatterns]);
