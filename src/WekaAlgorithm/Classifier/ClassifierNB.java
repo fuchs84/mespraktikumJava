@@ -11,8 +11,9 @@ import weka.core.Instances;
 public class ClassifierNB extends AbstractClassifier implements Runnable {
     private NaiveBayes classifier;
 
-    public ClassifierNB() throws Exception {
+    public ClassifierNB(String[] options) throws Exception {
         classifier = new NaiveBayes();
+        classifier.setOptions(options);
     }
 
     public void train() throws Exception{

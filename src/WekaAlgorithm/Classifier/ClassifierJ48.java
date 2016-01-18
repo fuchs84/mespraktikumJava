@@ -11,9 +11,7 @@ import weka.core.Instances;
 public class ClassifierJ48 extends AbstractClassifier implements Runnable {
     private J48 classifier;
 
-    public ClassifierJ48() throws Exception {
-        String[] options = new String[1];
-        options[0] = "-U";
+    public ClassifierJ48(String[] options) throws Exception {
         classifier = new J48();
         classifier.setOptions(options);
     }

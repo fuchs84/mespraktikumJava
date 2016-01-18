@@ -9,8 +9,9 @@ import weka.classifiers.trees.NBTree;
 public class ClassifierNBT extends AbstractClassifier{
     private NBTree classifier;
 
-    public ClassifierNBT() throws Exception {
+    public ClassifierNBT(String[] options) throws Exception {
         classifier = new NBTree();
+        classifier.setOptions(options);
     }
 
     public void train() throws Exception{

@@ -13,15 +13,16 @@ import java.util.Random;
  */
 public class ClassifierEvaluation {
     private Evaluation evaluation;
-    public void crossValidation(Classifier classifier, int split, Instances instances, StringBuilder stringBuilder) throws Exception {
+    public double crossValidation(Classifier classifier, int split, Instances instances, StringBuilder stringBuilder) throws Exception {
         evaluation = new Evaluation(instances);
         evaluation.crossValidateModel(classifier, instances, split, new Random(1));
         stringBuilder.append("Cross-Validation: " + "\n");
         stringBuilder.append(evaluation.toSummaryString() + "\n");
         stringBuilder.append(evaluation.toMatrixString() + "\n");
+        return evaluation.pctCorrect();
     }
 
-    public void percentageSplit(Classifier classifier, Instances instances, StringBuilder stringBuilder) throws Exception {
+    public double percentageSplit(Classifier classifier, Instances instances, StringBuilder stringBuilder) throws Exception {
         double percent = 66.6;
         int trainSize = (int) Math.round(instances.numInstances() * percent / 100);
         int testSize = instances.numInstances() - trainSize;
@@ -32,5 +33,6 @@ public class ClassifierEvaluation {
         stringBuilder.append("Percentage-Split: " + "\n");
         stringBuilder.append(evaluation.toSummaryString() + "\n");
         stringBuilder.append(evaluation.toMatrixString() + "\n");
+        return evaluation.pctCorrect();
     }
 }

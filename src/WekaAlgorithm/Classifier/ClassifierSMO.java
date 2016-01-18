@@ -9,8 +9,9 @@ import weka.classifiers.functions.SMO;
 public class ClassifierSMO extends AbstractClassifier{
     private SMO classifier;
 
-    public ClassifierSMO() throws Exception {
+    public ClassifierSMO(String[] options) throws Exception {
         classifier = new SMO();
+        classifier.setOptions(options);
     }
 
     public void train() throws Exception{

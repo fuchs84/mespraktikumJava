@@ -10,8 +10,9 @@ import weka.classifiers.meta.MultiBoostAB;
 public class ClassifierAB extends AbstractClassifier {
     private MultiBoostAB classifier;
 
-    public ClassifierAB() throws Exception {
+    public ClassifierAB(String[] options) throws Exception {
         classifier = new MultiBoostAB();
+        classifier.setOptions(options);
     }
 
     public void train() throws Exception{

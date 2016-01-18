@@ -12,18 +12,10 @@ import java.util.ArrayList;
  */
 
 /**
- {{"AdaBoost", "AdaBoost", "AdaBoost", "AdaBoost", "AdaBoost"
- , "AdaBoost", "AdaBoost", "AdaBoost", "AdaBoost", "AdaBoost", "AdaBoost"},
- {"DecisionTree", "DecisionTree","DecisionTree","DecisionTree","DecisionTree","DecisionTree","DecisionTree",
- "DecisionTree","DecisionTree","DecisionTree","DecisionTree"},
- {"RandomForest","RandomForest","RandomForest","RandomForest", "RandomForest","RandomForest", "RandomForest",
- "RandomForest","RandomForest","RandomForest","RandomForest",},
- {"NaiveBayes","NaiveBayes","NaiveBayes","NaiveBayes","NaiveBayes","NaiveBayes","NaiveBayes","NaiveBayes",
- "NaiveBayes","NaiveBayes","NaiveBayes"},
- {"SMO","SMO","SMO","SMO","SMO","SMO","SMO","SMO",
- "SMO","SMO","SMO"}};
+
  */
 public class Controller {
+    private double[] evaluationResults;
     private DataGenerator dataGenerator;
     private ArrayList<AbstractClassifier> classifiers;
     private int numberOfClassifiers;
@@ -31,7 +23,19 @@ public class Controller {
     private String[] selectedClassifiers = {"AdaBoost", "AdaBoost", "AdaBoost", "AdaBoost", "AdaBoost"
             , "AdaBoost", "AdaBoost", "AdaBoost", "AdaBoost", "AdaBoost", "AdaBoost"};
 
-    private String path = "evaluationSMO.txt";
+    private String[][] selectedOptions = {  {""},
+                                            {""},
+                                            {""},
+                                            {""},
+                                            {""},
+                                            {""},
+                                            {""},
+                                            {""},
+                                            {""},
+                                            {""},
+                                            {""}};
+
+    private String path = "evaluation.txt";
 
     Instances[] allInstances;
     Instances[] passInstances;
@@ -44,50 +48,51 @@ public class Controller {
         try {
             passInstances = dataGenerator.buildTrain(patternPathPass, labelPathPass);
             allInstances = dataGenerator.buildTrain(patternPathAll, labelPathAll);
-            buildStructure();
+            //buildStructure();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
 
-    private void buildStructure() throws Exception {
+    public void buildStructure() throws Exception {
         numberOfClassifiers = allInstances.length + passInstances.length;
+        evaluationResults = new double[numberOfClassifiers];
         classifiers = new ArrayList<>();
         if(selectedClassifiers.length == numberOfClassifiers) {
             for(int i = 0; i < numberOfClassifiers; i++) {
                 AbstractClassifier classifier;
                 if(selectedClassifiers[i].equals("DecisionTree")) {
                     System.out.println("DecisionTree");
-                    classifier = new ClassifierJ48();
+                    classifier = new ClassifierJ48(selectedOptions[i]);
                     classifiers.add(classifier);
                 } else if(selectedClassifiers[i].equals("NaiveBayes")) {
                     System.out.println("NaiveBayes");
-                    classifier = new ClassifierNB();
+                    classifier = new ClassifierNB(selectedOptions[i]);
                     classifiers.add(classifier);
                 } else if(selectedClassifiers[i].equals("RandomForest")) {
                     System.out.println("RandomForest");
-                    classifier = new ClassifierRF();
+                    classifier = new ClassifierRF(selectedOptions[i]);
                     classifiers.add(classifier);
                 } else if (selectedClassifiers[i].equals("MultilayerPerceptron")) {
                     System.out.println("MultilayerPerceptron");
-                    classifier = new ClassifierMLP();
+                    classifier = new ClassifierMLP(selectedOptions[i]);
                     classifiers.add(classifier);
                 } else if (selectedClassifiers[i].equals("AdaBoost")) {
                     System.out.println("AdaBoost");
-                    classifier = new ClassifierAB();
+                    classifier = new ClassifierAB(selectedOptions[i]);
                     classifiers.add(classifier);
                 } else if (selectedClassifiers[i].equals("SMO")) {
                     System.out.println("SMO");
-                    classifier = new ClassifierSMO();
+                    classifier = new ClassifierSMO(selectedOptions[i]);
                     classifiers.add(classifier);
                 } else if (selectedClassifiers[i].equals("NBTree")) {
                     System.out.println("NBTree");
-                    classifier = new ClassifierNBT();
+                    classifier = new ClassifierNBT(selectedOptions[i]);
                     classifiers.add(classifier);
                 } else if (selectedClassifiers[i].equals("KNN")) {
                     System.out.println("KNN");
-                    classifier = new ClassifierNBT();
+                    classifier = new ClassifierNBT(selectedOptions[i]);
                     classifiers.add(classifier);
                 }
             }
@@ -144,9 +149,9 @@ public class Controller {
                     stringBuilder.append("Fehlerlabel: " + (i+1) + "\n");
                     stringBuilder.append(selectedClassifiers[i] + "\n");
                     if(i < passInstances.length) {
-                        eval.crossValidation(classifier.getClassifier(), 10, passInstances[i], stringBuilder);
+                        evaluationResults[i] = eval.crossValidation(classifier.getClassifier(), 10, passInstances[i], stringBuilder);
                     } else {
-                        eval.crossValidation(classifier.getClassifier(), 10, allInstances[i - passInstances.length], stringBuilder);
+                        evaluationResults[i] = eval.crossValidation(classifier.getClassifier(), 10, allInstances[i - passInstances.length], stringBuilder);
                     }
                     stringBuilder.append("\n" + "\n");
                 }
@@ -156,9 +161,9 @@ public class Controller {
                     stringBuilder.append("Fehlerlabel: " + (i+1) + "\n");
                     stringBuilder.append(selectedClassifiers[i] + "\n");
                     if(i < passInstances.length) {
-                        eval.percentageSplit(classifier.getClassifier(), passInstances[i], stringBuilder);
+                        evaluationResults[i] = eval.percentageSplit(classifier.getClassifier(), passInstances[i], stringBuilder);
                     } else {
-                        eval.percentageSplit(classifier.getClassifier(), allInstances[i - passInstances.length], stringBuilder);
+                        evaluationResults[i] = eval.percentageSplit(classifier.getClassifier(), allInstances[i - passInstances.length], stringBuilder);
                     }
                     stringBuilder.append("\n" + "\n");
                 }
@@ -169,5 +174,17 @@ public class Controller {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void setSelectedClassifiers(String[] selectedClassifiers) {
+        this.selectedClassifiers = selectedClassifiers;
+    }
+
+    public void setSelectedOptions(String[][] selectedOptions) {
+        this.selectedOptions = selectedOptions;
+    }
+
+    public double[] getEvaluationResults() {
+        return evaluationResults;
     }
 }

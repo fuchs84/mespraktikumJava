@@ -10,8 +10,9 @@ import weka.classifiers.lazy.IBk;
 public class ClassifierKNN extends AbstractClassifier{
     private IBk classifier;
 
-    public ClassifierKNN() throws Exception {
+    public ClassifierKNN(String[] options) throws Exception {
         classifier = new IBk();
+        classifier.setOptions(options);
     }
 
     public void train() throws Exception{

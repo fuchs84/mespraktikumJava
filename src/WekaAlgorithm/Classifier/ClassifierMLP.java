@@ -9,8 +9,9 @@ import weka.classifiers.functions.MultilayerPerceptron;
 public class ClassifierMLP extends AbstractClassifier{
     private MultilayerPerceptron classifier;
 
-    public ClassifierMLP() throws Exception {
+    public ClassifierMLP(String[] options) throws Exception {
         classifier = new MultilayerPerceptron();
+        classifier.setOptions(options);
     }
 
     public void train() throws Exception{
