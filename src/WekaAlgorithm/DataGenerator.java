@@ -6,12 +6,19 @@ import java.io.*;
 import java.util.ArrayList;
 
 /**
- * Created by MatthiasFuchs on 08.01.16.
+ * Data generator for the classifiers
  */
 public class DataGenerator {
     private final int offset = 4;
     String[][] patterns;
 
+    /**
+     * Method builds the train-instances for each classifier/mistake
+     * @param patternPath Pattern storage path
+     * @param labelPath Label storage path
+     * @return Array with the instances for each classifier/mistake
+     * @throws Exception to invoking method
+     */
     public Instances[] buildTrain(String patternPath, String labelPath) throws Exception{
         String[][] patterns = readCSV(patternPath);
         String[][] labels = readCSV(labelPath);
@@ -44,6 +51,12 @@ public class DataGenerator {
         return instancesArray;
     }
 
+    /**
+     * Method builds classifying instance (one for all classifiers)
+     * @param path Pattern storage path
+     * @return Instance for the classifiers
+     * @throws Exception to invoking method
+     */
     public Instances buildClassify(String path) throws Exception {
         patterns = readCSV(path);
         int numberOfInstances = patterns.length;
@@ -69,6 +82,11 @@ public class DataGenerator {
         return instances;
     }
 
+    /**
+     * Method saves the classified results
+     * @param labels Classified Labels of all mistakes
+     * @throws Exception to invoking Method
+     */
     public void saveResults(double[][] labels) throws Exception {
         labels = transpose(labels);
         FileWriter fw = new FileWriter("results.csv");
@@ -90,6 +108,11 @@ public class DataGenerator {
         fw.close();
     }
 
+    /**
+     * Method transposes the 2d-matrix data
+     * @param data 2d-matrix
+     * @return transposed 2d-matrix
+     */
     private double[][] transpose(double[][] data) {
         double[][] transpose = new double[data[0].length][data.length];
         for (int i = 0; i < transpose.length; i++) {
@@ -100,6 +123,11 @@ public class DataGenerator {
         return transpose;
     }
 
+    /**
+     * Methods reads the CSV-file
+     * @param path storage path of the CSV-file
+     * @return 2d-array with the read data
+     */
     private String[][] readCSV(String path) {
         ArrayList<String> data = new ArrayList<>();
         int lineIndex = 0;

@@ -7,10 +7,15 @@ import java.util.ArrayList;
 import java.util.DoubleSummaryStatistics;
 
 /**
- * Created by MatthiasFuchs on 15.01.16.
+ * Variation the variables for the best result
  */
 public class VariationConstants {
     Controller controller;
+
+    /**
+     * Method varies for the classifiers and mistakes the variables of each classifier
+     * @throws Exception to invoking Method
+     */
     public void automaticVariation() throws Exception {
         String patternPathAll = "/Users/MatthiasFuchs/Desktop/Testdaten/Trainset/dataMix.csv";
         String labelPathAll = "/Users/MatthiasFuchs/Desktop/Testdaten/Trainset/labelMix.csv";
@@ -29,6 +34,7 @@ public class VariationConstants {
                         "KNN","KNN","KNN"}};
 
         FileWriter fw = new FileWriter("variation.txt");
+
 
 
         controller = new Controller();
@@ -166,45 +172,16 @@ public class VariationConstants {
         fw.close();
     }
 
+    /**
+     * Method extends the Options for the automatic variation
+     * @param option 1d-array with the options
+     * @return 2d-array with the options
+     */
     private String[][] extendOptions(String[] option) {
         String[][] options  = new String[11][];
         for(int i = 0; i < options.length; i++) {
             options[i] = option;
         }
         return options;
-    }
-
-    public void searchMax() throws Exception {
-        BufferedReader br = new BufferedReader(new FileReader("variation.txt"));
-        ArrayList<String> data = new ArrayList<>();
-        String line;
-        while ((line = br.readLine()) != null) {
-            data.add(line);
-        }
-        br.close();
-        int length = data.size();
-        String[][] results = new String[length][];
-        for(int i = 0; i < length; i++) {
-            results[i] = data.get(i).split("\t");
-        }
-        FileWriter fw = new FileWriter("best.txt");
-        for(int i = 0; i < 11; i++) {
-            double max = Double.NEGATIVE_INFINITY;
-            String classifier = "";
-            String options = "";
-            for(int j = 0; j < results.length; j++) {
-                double temp = Double.parseDouble(results[j][2+i]);
-                if(max < temp) {
-                    max = temp;
-                    classifier = results[j][0];
-                    options = results[j][0];
-                }
-            }
-            fw.append("Fehlerlabel " + (i+1) + "\t");
-            fw.append("Classifier: " + classifier + "\t");
-            fw.append("Options: " + options + "\t");
-            fw.append("Results: " + Double.toString(max) + "\n");
-        }
-        fw.close();
     }
 }

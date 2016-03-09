@@ -4,9 +4,10 @@ import weka.classifiers.Classifier;
 import weka.core.Instances;
 
 /**
- * Created by MatthiasFuchs on 09.01.16.
+ * Abstract class specifies all methods for the classifiers
  */
 public abstract class AbstractClassifier implements Runnable {
+
     protected Instances instances;
     protected double[] classified;
 

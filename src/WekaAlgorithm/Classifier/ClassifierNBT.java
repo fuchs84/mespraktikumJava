@@ -4,20 +4,34 @@ import weka.classifiers.Classifier;
 import weka.classifiers.trees.NBTree;
 
 /**
- * Created by MatthiasFuchs on 13.01.16.
+ * Classifier Naive Bayes Decision Tree
  */
 public class ClassifierNBT extends AbstractClassifier{
     private NBTree classifier;
 
+    /**
+     * Constructor for Naive Bayes Decision Tree classifier
+     * @param options selected options for the classifier
+     * @throws Exception to invoking method
+     */
     public ClassifierNBT(String[] options) throws Exception {
         classifier = new NBTree();
         classifier.setOptions(options);
     }
 
+    /**
+     * Method trains the classifier
+     * @throws Exception to invoking method
+     */
     public void train() throws Exception{
         classifier.buildClassifier(instances);
     }
 
+    /**
+     * Method classifies the instances
+     * @return classified labels
+     * @throws Exception to invoking method
+     */
     public double[] classify() throws Exception {
         classified = new double[instances.numInstances()];
         for(int i = 0; i < instances.numInstances(); i++) {
@@ -26,10 +40,17 @@ public class ClassifierNBT extends AbstractClassifier{
         return classified;
     }
 
+    /**
+     * getter-Method for classifier
+     * @return used classifier
+     */
     public Classifier getClassifier() {
         return classifier;
     }
 
+    /**
+     * Train-method for threading
+     */
     @Override
     public void run() {
         try {

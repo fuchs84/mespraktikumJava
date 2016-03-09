@@ -8,11 +8,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 /**
- * Created by MatthiasFuchs on 08.01.16.
- */
-
-/**
-
+ * Controller algorithm
  */
 public class Controller {
     private double[] evaluationResults;
@@ -20,9 +16,16 @@ public class Controller {
     private ArrayList<AbstractClassifier> classifiers;
     private int numberOfClassifiers;
     private boolean built = false;
+
+    /**
+     * Selected classifier (one for each mistake)
+     */
     private String[] selectedClassifiers = {"AdaBoost", "AdaBoost", "AdaBoost", "AdaBoost", "AdaBoost"
             , "AdaBoost", "AdaBoost", "AdaBoost", "AdaBoost", "AdaBoost", "AdaBoost"};
 
+    /**
+     * Selected options for each classifier
+     */
     private String[][] selectedOptions = {  {""},
                                             {""},
                                             {""},
@@ -35,15 +38,31 @@ public class Controller {
                                             {""},
                                             {""}};
 
+    /**
+     * Storage path for saved results
+     */
     private String path = "evaluation.txt";
 
+    /**
+     * Instances for the mistakes
+     */
     Instances[] allInstances;
     Instances[] passInstances;
 
+    /**
+     * Constructor
+     */
     public Controller() {
         dataGenerator = new DataGenerator();
     }
 
+    /**
+     * Method initialised the Instances
+     * @param patternPathAll pattern storage path
+     * @param labelPathAll label storage path
+     * @param patternPathPass pattern storage path (mistake amble)
+     * @param labelPathPass label storage path (mistake amble)
+     */
     public void init(String patternPathAll, String labelPathAll, String patternPathPass, String labelPathPass) {
         try {
             passInstances = dataGenerator.buildTrain(patternPathPass, labelPathPass);
@@ -54,7 +73,10 @@ public class Controller {
         }
     }
 
-
+    /**
+     * Method builds the structure of the algorithm
+     * @throws Exception to invoking method
+     */
     public void buildStructure() throws Exception {
         numberOfClassifiers = allInstances.length + passInstances.length;
         evaluationResults = new double[numberOfClassifiers];
@@ -102,6 +124,9 @@ public class Controller {
         }
     }
 
+    /**
+     * Method trains all selected classifiers
+     */
     public void train() {
         try {
             for(int i = 0; i < numberOfClassifiers; i++) {
@@ -120,6 +145,10 @@ public class Controller {
         }
     }
 
+    /**
+     * Method classifies all mistakes
+     * @param patternPath storage path for classifying data
+     */
     public void classify(String patternPath) {
         double[][] labels = new double[numberOfClassifiers][];
         try {
@@ -139,6 +168,10 @@ public class Controller {
         }
     }
 
+    /**
+     * Method evaluates all selected classifiers
+     * @param type evaluation Type
+     */
     public void evaluation(String type) {
         try {
             StringBuilder stringBuilder = new StringBuilder();
@@ -176,14 +209,26 @@ public class Controller {
         }
     }
 
+    /**
+     * setter-Method for selected classifiers
+     * @param selectedClassifiers selected classifiers
+     */
     public void setSelectedClassifiers(String[] selectedClassifiers) {
         this.selectedClassifiers = selectedClassifiers;
     }
 
+    /**
+     * setter-Method for selected options for each classifier
+      * @param selectedOptions
+     */
     public void setSelectedOptions(String[][] selectedOptions) {
         this.selectedOptions = selectedOptions;
     }
 
+    /**
+     * getter-Method for evaluation results
+     * @return evaluation results
+     */
     public double[] getEvaluationResults() {
         return evaluationResults;
     }

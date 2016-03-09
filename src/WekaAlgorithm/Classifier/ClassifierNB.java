@@ -6,20 +6,34 @@ import weka.classifiers.bayes.NaiveBayes;
 import weka.core.Instances;
 
 /**
- * Created by MatthiasFuchs on 09.01.16.
+ * Classifier Naive Bayes
  */
 public class ClassifierNB extends AbstractClassifier implements Runnable {
     private NaiveBayes classifier;
 
+    /**
+     * Constructor for Naive Bayes classifier
+     * @param options selected options for the classifier
+     * @throws Exception to invoking method
+     */
     public ClassifierNB(String[] options) throws Exception {
         classifier = new NaiveBayes();
         classifier.setOptions(options);
     }
 
+    /**
+     * Method trains the classifier
+     * @throws Exception to invoking method
+     */
     public void train() throws Exception{
         classifier.buildClassifier(instances);
     }
 
+    /**
+     * Method classifies the instances
+     * @return classified labels
+     * @throws Exception to invoking method
+     */
     public double[] classify() throws Exception {
         classified = new double[instances.numInstances()];
         for(int i = 0; i < instances.numInstances(); i++) {
@@ -28,10 +42,17 @@ public class ClassifierNB extends AbstractClassifier implements Runnable {
         return classified;
     }
 
+    /**
+     * getter-Method for classifier
+     * @return used classifier
+     */
     public Classifier getClassifier() {
         return classifier;
     }
 
+    /**
+     * Train-method for threading
+     */
     @Override
     public void run() {
         try {

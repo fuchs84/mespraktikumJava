@@ -9,10 +9,20 @@ import java.io.FileWriter;
 import java.util.Random;
 
 /**
- * Created by MatthiasFuchs on 08.01.16.
+ * Evaluation results
  */
 public class ClassifierEvaluation {
     private Evaluation evaluation;
+
+    /**
+     * Method evaluates classifier with cross-validation
+     * @param classifier used classifier
+     * @param split number of splits
+     * @param instances used instances
+     * @param stringBuilder add results to String
+     * @return percentage correctly classified
+     * @throws Exception to invoking method
+     */
     public double crossValidation(Classifier classifier, int split, Instances instances, StringBuilder stringBuilder) throws Exception {
         evaluation = new Evaluation(instances);
         evaluation.crossValidateModel(classifier, instances, split, new Random(1));
@@ -22,6 +32,14 @@ public class ClassifierEvaluation {
         return evaluation.pctCorrect();
     }
 
+    /**
+     * Method evaluats classifier with percentage split
+     * @param classifier used classifier
+     * @param instances used instances
+     * @param stringBuilder add results to String
+     * @return percentage correctly classified
+     * @throws Exception to invoking method
+     */
     public double percentageSplit(Classifier classifier, Instances instances, StringBuilder stringBuilder) throws Exception {
         double percent = 66.6;
         int trainSize = (int) Math.round(instances.numInstances() * percent / 100);
