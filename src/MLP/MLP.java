@@ -6,25 +6,56 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Created by MatthiasFuchs on 04.11.15.
+ * Multilayer-Perceptron classifier (own implementation)
  */
 
 public class MLP {
+    /**
+     * Number of input, output und hidden layers
+     */
     private int nInput, nOutput;
     private int[] nHidden;
+
+    /**
+     * Weights between the layers
+     */
     private List<double[][]> weights = new LinkedList<double[][]>();
 
+    /**
+     * Current Values of the input, output und hidden layers
+     */
     private double [] input, output;
     private List<double[]> layers = new LinkedList<double[]>();
 
+    /**
+     * Number of hidden layers
+     */
     private int numberOfHiddenlayers = 1;
 
-    private double[][] actualOutput;
+    /**
+     * Current and desired values of the output
+     */
+    private double[][] currentOutput;
     private double[][] desiredOutput;
+
+    /**
+     * Entire Error
+     */
     private double  entireError = 0.0;
 
+    /**
+     * Desired output distribution
+     */
     private List<Double> desiredOutputDistribution = new LinkedList<Double>();
 
+    /**
+     * Method trains the classifier and iterates as long as the entire error decreases.
+     * @param patterns Train features
+     * @param labels Train labels
+     * @param nHidden Number of the perceptrons in the hidden Layers
+     * @param learningRate learning Rate (between 0 and 1)
+     * @param maxIteration Number of max iterations.
+     */
     public void train(double[][] patterns, double[] labels, int[] nHidden, double learningRate, long maxIteration) {
         nInput = patterns[0].length;
         nOutput = computeMaxLabel(labels);
@@ -45,12 +76,12 @@ public class MLP {
                 if (index > 0) {
                     previousEntireError = entireError;
                 }
-                actualOutput = new double[extendedLabels.length][extendedLabels[0].length];
+                currentOutput = new double[extendedLabels.length][extendedLabels[0].length];
                 desiredOutput = extendedLabels;
 
                 for (int i = 0; i < patterns.length; i++) {
 
-                    actualOutput[i] = passNetwork(patterns[i]);
+                    currentOutput[i] = passNetwork(patterns[i]);
                     backPropagation(extendedLabels[i], learningRate);
                 }
 
@@ -64,6 +95,9 @@ public class MLP {
         }
     }
 
+    /**
+     * Method initialize the all layers
+     */
     private void initLayers(){
         numberOfHiddenlayers = nHidden.length;
 
@@ -76,6 +110,9 @@ public class MLP {
         }
     }
 
+    /**
+     * Method initializes the weights between the layers with random numbers between -0.5 and 0.5
+     */
     private void initWeights(){
         for (int i = 0; i <= numberOfHiddenlayers; i++) {
             double[][] weightMatrix;
@@ -95,6 +132,9 @@ public class MLP {
         }
     }
 
+    /**
+     * Method prints the current values of the weights
+     */
     public void printWeights() {
         for (int i = 0; i <= numberOfHiddenlayers; i++) {
             double [][] weightMatrix = weights.get(i);
@@ -109,6 +149,9 @@ public class MLP {
         }
     }
 
+    /**
+     * Method prints the current values of the layers
+     */
     public void printLayers() {
         System.out.println("Inputlayer: ");
         for (int i=0; i < input.length; i++) {
@@ -129,14 +172,22 @@ public class MLP {
         }
     }
 
+    /**
+     * Method calculates after each iteration the entire error
+     */
     private void calculateEntireError() {
-        for(int i = 0; i < actualOutput.length; i++) {
-            for(int j = 0; j < actualOutput[0].length; j++) {
-                entireError = entireError + 0.5 * Math.pow(desiredOutput[i][j] - actualOutput[i][j], 2);
+        for(int i = 0; i < currentOutput.length; i++) {
+            for(int j = 0; j < currentOutput[0].length; j++) {
+                entireError = entireError + 0.5 * Math.pow(desiredOutput[i][j] - currentOutput[i][j], 2);
             }
         }
     }
 
+    /**
+     * Method search after the max label in the label-set
+     * @param labels label-set
+     * @return max label
+     */
     protected int computeMaxLabel(double[] labels) {
         int maxLabel = 0;
         int numberOfLabels = labels.length;
@@ -148,6 +199,11 @@ public class MLP {
         return maxLabel;
     }
 
+    /**
+     * Method extends the labels for the output layer. Each label has his own output perceptron.
+     * @param labels label-set
+     * @return extend label-set
+     */
     private double[][] extendedLabels(double[] labels) {
         int length = computeMaxLabel(labels), value;
         double[][] extendedLabels = new double[labels.length][length];
@@ -159,6 +215,11 @@ public class MLP {
         return extendedLabels;
     }
 
+    /**
+     * Method calculates the normalisation of the features
+     * @param patterns feature-set
+     * @return normalized feature-set
+     */
     private double[][] normalisation(double[][] patterns) {
         double[][] newPatterns = new double[patterns.length][patterns[0].length];
         double max, min;
@@ -180,6 +241,11 @@ public class MLP {
         return newPatterns;
     }
 
+    /**
+     * Method classifies a feature-set
+     * @param patterns feature-set
+     * @return classified label-set
+     */
     public double[] classify(double[][] patterns) {
         patterns = normalisation(patterns);
         double [] labels = new double[patterns.length];
@@ -192,6 +258,12 @@ public class MLP {
         return labels;
     }
 
+
+    /**
+     * Method calculates the strongest output layer. This layer determines the output label
+     * @param classified classified output layer
+     * @return classified output label
+     */
     private int winner(double[] classified) {
         double max = Double.NEGATIVE_INFINITY;
         int index = 0;
@@ -204,6 +276,11 @@ public class MLP {
         return index;
     }
 
+    /**
+     * Method passes a feature-set instance the network.
+     * @param trainInput feature-set instance
+     * @return activation of the output layer
+     */
     private double[] passNetwork(double[] trainInput) {
 
         input[0] = 1.0;
@@ -255,12 +332,21 @@ public class MLP {
         return output;
     }
 
+    /**
+     * Activation function calculates the output value for each perceptron
+     * @param value input value
+     * @return output value
+     */
     private double activationFunction(double value) {
         double solution = 0.0;
         solution = 1.0/(1.0 + Math.exp(-value));
         return solution;
     }
 
+    /**
+     * Method calculates the distribution in the train-label-set
+     * @param desiredOutput Desired output
+     */
     private void calculateDistribution(double [][] desiredOutput) {
         double temp = 0.0;
 
@@ -285,6 +371,11 @@ public class MLP {
         }
     }
 
+    /**
+     * Method propagate the output error backwards to the input layer
+     * @param desiredOutput calculated output
+     * @param learningRate learning rate
+     */
     private void backPropagation(double[] desiredOutput, double learningRate) {
 
         double distributionFactor = 0.0;
@@ -393,6 +484,10 @@ public class MLP {
         weights.set(numberOfHiddenlayers, weight);
     }
 
+    /**
+     * Method saves the Multilayer-perceptron data such as weights, number of layers and perceptrons in a CSV-file.
+     * You can use it to save the train-results.
+     */
     public void saveData() {
         try {
             FileWriter fw = new FileWriter("mlp.csv");
@@ -424,6 +519,10 @@ public class MLP {
         }
     }
 
+    /**
+     * Method reads the train-results from a CSV-file.
+     * You can classify with the saved train-results.
+     */
     public void loadData() {
         try {
             BufferedReader br = new BufferedReader(new FileReader("mlp.csv"));
@@ -441,6 +540,10 @@ public class MLP {
         }
     }
 
+    /**
+     * Method builds the structure of the multilayer-perceptron with the read CSV-data.
+     * @param data CSV-data
+     */
     private void buildWithLoadedData(ArrayList<String> data) {
         String[] parts = data.get(0).split(",");
         nHidden = new int[parts.length-2];
@@ -457,6 +560,10 @@ public class MLP {
         initWeights(data);
     }
 
+    /**
+     * Method initialized the weights with the read CSV-data.
+     * @param data CSV-data
+     */
     private void initWeights(ArrayList<String> data){
         String[] parts;
         for (int i = 0; i <= numberOfHiddenlayers; i++) {

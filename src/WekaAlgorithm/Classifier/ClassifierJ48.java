@@ -9,6 +9,10 @@ import weka.core.Instances;
  */
 
 public class ClassifierJ48 extends AbstractClassifier implements Runnable {
+
+    /**
+     * classifier
+     */
     private J48 classifier;
 
     /**

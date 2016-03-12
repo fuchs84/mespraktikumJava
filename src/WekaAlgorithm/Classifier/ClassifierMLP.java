@@ -7,6 +7,10 @@ import weka.classifiers.functions.MultilayerPerceptron;
  * Classifier Multilayer-Perceptron
  */
 public class ClassifierMLP extends AbstractClassifier{
+
+    /**
+     * classifier
+     */
     private MultilayerPerceptron classifier;
 
     /**

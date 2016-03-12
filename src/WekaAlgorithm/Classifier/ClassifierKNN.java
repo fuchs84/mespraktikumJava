@@ -8,6 +8,10 @@ import weka.classifiers.lazy.IBk;
  * Classifier K-Nearest-Neighbor
  */
 public class ClassifierKNN extends AbstractClassifier{
+
+    /**
+     * classifier
+     */
     private IBk classifier;
 
     /**

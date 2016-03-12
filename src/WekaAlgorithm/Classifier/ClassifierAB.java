@@ -8,6 +8,9 @@ import weka.classifiers.meta.MultiBoostAB;
  * Classifier AdaBoost
  */
 public class ClassifierAB extends AbstractClassifier {
+    /**
+     * classifier
+     */
     private MultiBoostAB classifier;
 
     /**
@@ -42,7 +45,7 @@ public class ClassifierAB extends AbstractClassifier {
     }
 
     /**
-     * getter-Method for classifier
+     * Getter-method for classifier
      * @return used classifier
      */
     public Classifier getClassifier() {

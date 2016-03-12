@@ -7,6 +7,10 @@ import weka.classifiers.trees.RandomForest;
  * Classifier Random Forest
  */
 public class ClassifierRF extends AbstractClassifier implements Runnable{
+
+    /**
+     * classifier
+     */
     private RandomForest classifier;
 
     /**

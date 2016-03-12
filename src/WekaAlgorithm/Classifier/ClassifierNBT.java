@@ -7,6 +7,10 @@ import weka.classifiers.trees.NBTree;
  * Classifier Naive Bayes Decision Tree
  */
 public class ClassifierNBT extends AbstractClassifier{
+
+    /**
+     * classifier
+     */
     private NBTree classifier;
 
     /**

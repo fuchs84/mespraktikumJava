@@ -9,6 +9,10 @@ import weka.core.Instances;
  * Classifier Naive Bayes
  */
 public class ClassifierNB extends AbstractClassifier implements Runnable {
+
+    /**
+     * classifier
+     */
     private NaiveBayes classifier;
 
     /**

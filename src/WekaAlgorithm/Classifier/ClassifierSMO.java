@@ -7,6 +7,10 @@ import weka.classifiers.functions.SMO;
  * Classifier Sequential-Minimal-Optimization
  */
 public class ClassifierSMO extends AbstractClassifier{
+
+    /**
+     * classifier
+     */
     private SMO classifier;
 
     /**
