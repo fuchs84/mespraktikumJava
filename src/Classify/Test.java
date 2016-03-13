@@ -15,29 +15,45 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 /**
- * Created by MatthiasFuchs on 19.12.15.
+ * Test-class for the own implemented classifiers
  */
 public class Test {
-    private MLP mlp;
+
+    /**
+     * Classifiers
+     */
     private BinarySplitDT binarySplitDT;
     private MultiSplitDT multiSplitDT;
-
     private KNN knn;
-    private NaiveBayes nb;
 
+    /**
+     * Data for amble mistake and remaining mistake
+     */
     private ReadData readData;
     private Data dataAll;
     private Data dataPass;
+
+    /**
+     * Show results
+     */
     private Crossvalidation crossvalidation;
     private ConfusionMatrix confusionMatrix;
 
 
-    public void preselectionTest(String patternPathAll, String labelPathAll, String patternPathPass, String labelPathPass) {
+    /**
+     * Method calculates the label-distribution and tests the own implemented classifier with different classifier values
+     * @param patternPathAll Storage path pattern-set
+     * @param labelPathAll Storage path label-set
+     * @param patternPathPass Storage path pattern-set (amble)
+     * @param labelPathPass Storage path label-set (amble)
+     */
+    public void test(String patternPathAll, String labelPathAll, String patternPathPass, String labelPathPass) {
         readData = new ReadData();
 
         dataPass = readData.readCSVs(patternPathPass, labelPathPass);
         dataAll = readData.readCSVs(patternPathAll, labelPathAll);
 
+        //Calculates the distribution of the individual label sets
         double[] distribution = computeDistribution(dataPass.getLabel()[0]);
         System.out.println("Selected Label-Set: " + 1);
         for(int j = 0; j < distribution.length; j++) {
@@ -58,8 +74,12 @@ public class Test {
         confusionMatrix = new ConfusionMatrix();
         double[] classify;
 
+        //percent/size of train-data
         double split = 0.7;
+
+        //Select mistake for classifier test
         int[] selectedLabelSets = {9, 10};
+
         for(int i = 0; i < selectedLabelSets.length; i++) {
             ArrayList<ArrayList> randomData = null;
             ArrayList<double[][]> randomPattern;
@@ -115,11 +135,15 @@ public class Test {
             System.out.println("Split sizes: ");
             System.out.println("Train: " + trainPattern.length);
             System.out.println("Test: " + testPattern.length);
+
+            //Calculates the label distribution of the train-set
             System.out.println("Train distribution: ");
             distribution = computeDistribution(trainLabel);
             for (int j = 0; j < distribution.length; j++) {
                 System.out.println("Label " + (j + 1) + ": " + distribution[j]);
             }
+
+            //Calculates the label distribution of the test-set
             System.out.println("Test distribution: ");
             distribution = computeDistribution(testLabel);
             for (int j = 0; j < distribution.length; j++) {
@@ -127,6 +151,7 @@ public class Test {
             }
             System.out.println();
 
+            //K-Nearest-Neighbor with different classifier values
             for (int c = 0; c < 6; c++) {
                 System.out.println("KNN: ");
                 System.out.println("K: " + (5 + 2*c));
@@ -138,8 +163,10 @@ public class Test {
                 System.out.println();
             }
 
+            //Binary decision tree with different classifier values
             for(int b = 0; b < 6; b++) {
                 System.out.println("Binary: ");
+                //split size of the train-data for the decision rules
                 System.out.println("Splitsize: " + (5 + 2*b));
                 binarySplitDT = new BinarySplitDT();
                 binarySplitDT.train(trainPattern, trainLabel, 50, 20, (5 + 2*b));
@@ -149,8 +176,10 @@ public class Test {
                 System.out.println();
             }
 
+            //Multi split decision tree with different classifier values
             for(int b = 0; b < 4; b++) {
                 System.out.println("Multi: ");
+                //split size of the train-data for the decision rules
                 System.out.println("Splitsize: " + (8 + b*2));
                 multiSplitDT = new MultiSplitDT();
                 multiSplitDT.train(trainPattern, trainLabel, 20, 40, (8 + b*2));
@@ -162,6 +191,11 @@ public class Test {
         }
     }
 
+    /**
+     * Method calculates the label distribution
+     * @param labels label-set
+     * @return label distribution
+     */
     public double[] computeDistribution(double[] labels) {
         int numberOfInstances = labels.length;
         double[] distribution = new double[3];

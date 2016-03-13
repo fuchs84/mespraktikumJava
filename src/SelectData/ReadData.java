@@ -7,10 +7,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 /**
- * Created by MatthiasFuchs on 13.12.15.
+ * Data read from CSV-files
  */
 public class ReadData {
 
+    /**
+     * Method reads two CSV-files (pattern-file and label-file)
+     * @param patternPath Storage path feature-file
+     * @param labelPath Storage path label-file
+     * @return data-object (see Data-Class)
+     */
     public Data readCSVs(String patternPath, String labelPath) {
         double[][] pattern;
         double[][] label;
@@ -37,9 +43,13 @@ public class ReadData {
             e.printStackTrace();
         }
 
+        //Offset instances
         int offset = 0;
+
+        //Offset timestamps
         int offsetLabels = 4;
         int offsetPatterns = 4;
+
         String[] labelParts = labelData.get(0).split(",");
         String[] patternParts = patternData.get(0).split(",");
         pattern = new double[lineIndex - offset][patternParts.length-offsetPatterns];
@@ -65,35 +75,5 @@ public class ReadData {
             }
         }
         return new Data(label, pattern);
-    }
-
-
-    public int[] readStepCSV(String path) {
-        int[] steps;
-        ArrayList<String> stepData = new ArrayList<>();
-        int lineIndex = 0;
-        try {
-            BufferedReader brP = new BufferedReader(new FileReader(path));
-            String line;
-            while ((line = brP.readLine()) != null) {
-                stepData.add(line);
-                lineIndex++;
-            }
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        String[] lineParts;
-
-        steps = new int[lineIndex];
-        int offset = 0;
-        for(int i = 0; i < lineIndex; i++) {
-            lineParts = stepData.get(i).split("\t");
-            steps[i] = (int)(Double.parseDouble(lineParts[offset + 1]) - Double.parseDouble(lineParts[offset]));
-        }
-        return  steps;
     }
 }

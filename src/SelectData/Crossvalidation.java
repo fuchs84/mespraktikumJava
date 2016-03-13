@@ -5,10 +5,17 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Created by Sebastian on 12.11.2015.
+ * Cross-validation and percentage random split
  */
 public class Crossvalidation {
 
+    /**
+     * Method creates a cross validation.
+     * @param inputpattern Feature-set
+     * @param inputlabel Label-set
+     * @param splits Number of splits
+     * @return Array-list with label-sets and feature-sets
+     */
     public ArrayList<ArrayList> crossvalidate(double [][] inputpattern, double [] inputlabel, int splits){
         ArrayList<ArrayList> data = new ArrayList<>();
         ArrayList<double[][]> patternlist = new ArrayList();
@@ -34,7 +41,13 @@ public class Crossvalidation {
     }
 
 
-
+    /**
+     * Method creates a random data split.
+     * @param inputpattern Feature-set
+     * @param inputlabel Label-set
+     * @param percent Percent/size of the train-set
+     * @return Array-list with label-sets and feature-sets
+     */
     public ArrayList<ArrayList> randomDataSplit(double [][] inputpattern, double [] inputlabel, double percent) {
         ArrayList<ArrayList> data = new ArrayList<>();
         ArrayList<double[][]> patterns = new ArrayList<>();

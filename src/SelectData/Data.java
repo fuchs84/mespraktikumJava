@@ -5,39 +5,40 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Created by MatthiasFuchs on 12.11.15.
+ * Data-class
  */
 public final class Data {
+    /**
+     * Arrays with complete-data set and split data-set (train and test)
+     */
     private double[][] label;
     private double[][] pattern;
     public double [][] testPattern;
     public double [][] testLabel;
     public double [][] trainLabel;
     public double [][] trainPattern;
+
+    /**
+     * Percent/size of the train-set
+     */
     private double split = 0.7;
 
+    /**
+     * Constructor for the data
+     * @param label
+     * @param pattern
+     */
     public Data (double[][] label, double[][] pattern) {
         this.label = transpose(label);
         this.pattern = pattern;
         splitData(pattern, label);
     }
 
-    public void shuffleData() {
-        this.label = transpose(label);
-        Random rnd = ThreadLocalRandom.current();
-        for (int i = pattern.length - 1; i > 0; i--)
-        {
-            int index = rnd.nextInt(i + 1);
-            double[] a = pattern[index];
-            double[] b = label[index];
-            pattern[index] = pattern[i];
-            label[index] = label[index];
-            pattern[i] = a;
-            label[i] = b;
-        }
-        this.label = transpose(label);
-    }
-
+    /**
+     * Method creates a train- and test-set with a percentage Split
+     * @param pattern feature-set
+     * @param label label-set
+     */
     private void splitData(double[][] pattern, double[][] label) {
         int boarder = (int) (pattern.length*split);
         trainPattern = new double[boarder][];
@@ -57,6 +58,11 @@ public final class Data {
         testLabel = transpose(testLabel);
     }
 
+    /**
+     * Method transpose a given matrix
+     * @param data 2d-matrix
+     * @return Transposed 2d-matrix
+     */
     private double[][] transpose(double[][] data) {
         double[][] transpose = new double[data[0].length][data.length];
         for (int i = 0; i < transpose.length; i++) {
@@ -67,18 +73,34 @@ public final class Data {
         return transpose;
     }
 
+    /**
+     * Getter-method for label-set
+     * @return Label-set
+     */
     public double[][] getLabel() {
         return label;
     }
 
+    /**
+     * Getter-method for feature-set
+     * @return Feature-set
+     */
     public double[][] getPattern() {
         return pattern;
     }
 
+    /**
+     * Setter-method for label-set
+     * @param label Label-set
+     */
     public void setLabel(double[][] label) {
         this.label = label;
     }
 
+    /**
+     * Setter-method for feature-set
+     * @param pattern Feature-set
+     */
     public void setPattern(double[][] pattern) {
         this.pattern = pattern;
     }

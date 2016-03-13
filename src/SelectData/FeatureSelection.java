@@ -8,19 +8,31 @@ import java.io.*;
 import java.util.ArrayList;
 
 /**
- * Created by MatthiasFuchs on 30.12.15.
+ * Feature selection
  */
 public class FeatureSelection {
     private Matrix pcaMatrix;
     private ArrayList<Integer> thresholdFeatures;
 
 
+    /**
+     * Methods calculates a principal component analysis
+     * @param patterns Feature-set
+     * @param k Number of output features
+     * @return New feature-set with k features
+     */
     public double[][] computePCA(double[][] patterns, int k) {
         double[][] covariance = computeCovarianceMatrix(patterns);
+
+        //covariance matrix
         Matrix covarianceMatrix = new Matrix(covariance);
+
+        //eigenvalues
         EigenvalueDecomposition evD = new EigenvalueDecomposition(covarianceMatrix);
 
+        //eigenvectors
         double [][] ev = evD.getV().getArray();
+
         double[][] pca = new double[ev.length][k];
 
         int evIndex = ev[0].length - 1;
@@ -37,12 +49,22 @@ public class FeatureSelection {
         return (patternsMatrix.times(pcaMatrix).getArray());
     }
 
+    /**
+     * Method applies the principal component analysis.
+     * @param patterns Feature-set
+     * @return New feature-set with k features
+     */
     public double[][] usePCA(double[][] patterns) {
         patterns = computeZeroMeanPatterns(patterns);
         Matrix patternsMatrix = new Matrix(patterns);
         return (patternsMatrix.times(pcaMatrix).getArray());
     }
 
+    /**
+     * Method calculates a covariance matrix
+     * @param patterns Feature-set
+     * @return Covariance matrix of the feature-set
+     */
     private double[][] computeCovarianceMatrix(double[][] patterns) {
         double samples = patterns.length;
         double[][] covariance = new double[patterns[0].length][patterns[0].length];
@@ -69,6 +91,11 @@ public class FeatureSelection {
         return covariance;
     }
 
+    /**
+     * Method calculates the zero mean value of the features
+     * @param patterns Feature-set
+     * @return Zero mean feature-set
+     */
     private double[][] computeZeroMeanPatterns(double[][] patterns) {
         int numberOfInstances = patterns.length;
         double mean;
@@ -85,6 +112,9 @@ public class FeatureSelection {
         return patterns;
     }
 
+    /**
+     * Method saves the principal component analysis in a CSV-file for further/later use.
+     */
     public void saveDataPCA() {
         double[][] pca = pcaMatrix.getArray();
         try {
@@ -102,6 +132,9 @@ public class FeatureSelection {
         }
     }
 
+    /**
+     * Method loads the principal component analysis from a CSV-file.
+     */
     public void loadDataPCA() {
         try {
             BufferedReader br = new BufferedReader(new FileReader("PCA.csv"));
@@ -128,6 +161,12 @@ public class FeatureSelection {
         }
     }
 
+    /**
+     * Methods calculates a variance of the feature-set and select the features above the threshold
+     * @param patterns Feature-set
+     * @param threshold Threshold
+     * @return New feature-set
+     */
     public double[][] computeVarianceThreshold(double[][] patterns, double threshold) {
         thresholdFeatures = new ArrayList<>();
         double[] variance = computeVariance(patterns);
@@ -147,6 +186,11 @@ public class FeatureSelection {
         return newPatterns;
     }
 
+    /**
+     * Method applies the variance threshold
+     * @param patterns Feature-set
+     * @return variance threshold
+     */
     public double[][] useVarianceThreshold(double[][] patterns) {
         double[][] newPatterns = new double[patterns.length][thresholdFeatures.size()];
         int featureNumber;
@@ -159,6 +203,11 @@ public class FeatureSelection {
         return newPatterns;
     }
 
+    /**
+     * Method calculates the variance
+     * @param patterns Feature-set
+     * @return variance
+     */
     private double[] computeVariance(double[][] patterns) {
         int samples = patterns.length;
         double[] variance = new double[patterns[0].length];
@@ -177,6 +226,9 @@ public class FeatureSelection {
         return variance;
     }
 
+    /**
+     * Method saves the variance threshold in a CSV-file for further/later use.
+     */
     public void saveThresholdVariance() {
         try {
             FileWriter fw = new FileWriter("ThresholdVariance.csv");
@@ -191,6 +243,9 @@ public class FeatureSelection {
     }
 
 
+    /**
+     * Method loads the variance threshold from a CSV-file.
+     */
     public void loadThresholdVariance() {
         thresholdFeatures = new ArrayList<>();
         try {

@@ -1,11 +1,18 @@
 package Classify;
 
 /**
- * Created by MatthiasFuchs on 12.11.15.
+ * Class calculates the confusion matrix
  */
 public class ConfusionMatrix {
+
+    //Confusion matrix
     private int[][] matrix;
 
+    /**
+     * Method calculates the confusion matrix of a given classified label-set and desired label-set.
+     * @param output Classified label-set
+     * @param desiredOutput Desired label-set
+     */
     public void computeConfusionMatrix(double[] output, double[] desiredOutput) {
         if (output.length != desiredOutput.length) {
             System.out.println("Output und desiredOutput passen nicht zusammen!");
@@ -43,6 +50,11 @@ public class ConfusionMatrix {
         }
     }
 
+    /**
+     * Method calculates the percentage true and false classified Value.
+     * @param output Classified label-set
+     * @param desiredOutput Desired label-set
+     */
     public void computeTrueFalse(double[] output, double[] desiredOutput) {
         if (output.length != desiredOutput.length) {
             System.out.println("Output und desiredOutput passen nicht zusammen!");
