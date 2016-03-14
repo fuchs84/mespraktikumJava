@@ -1,26 +1,25 @@
 package DT;
 
 /**
- * Created by MatthiasFuchs on 13.11.15.
+ * Generally class for the nodes
  */
 public class Node {
 
     /**
-     * Attribute des Kontens
+     * nodes attributes
      */
     protected int decisionAttribute = Integer.MIN_VALUE;
     protected boolean leaf = false;
     protected double classLabel = Double.NEGATIVE_INFINITY;
+
+    //node depth
     public int deep;
 
-    /**
-     * Verknuepfungen der Knoten untereinander
-     */
-
+    //parent node
     public Node parent;
 
     /**
-     * Getter- und Setter-Methoden des Knotens
+     * Getter- and setter-methods of nodes attributes
      */
     public boolean getLeaf() {
         return leaf;

@@ -7,27 +7,40 @@ import java.io.*;
 import java.util.*;
 
 /**
- * Created by MatthiasFuchs on 13.11.15.
+ * Generally class for the decision tree
  */
 public class DecisionTree {
 
+    //Split size for calculating decision rule
     protected int quantifySize;
+
+    //List of the used features
     protected List<Integer> usedFeature = new LinkedList<>();
+
+    //Default label
     protected int defaultLabel;
+
+    //Label distribution
     protected int[] entireDistribution;
+
+    //List of the used labels
     protected List<Double> usedLabels = new LinkedList<>();
+
+    //Number of instances
     protected int numberOfInstances;
+
+    //Depth of the tree
     protected int deep;
+
+    //Minimal node size
     protected int minNodeSize;
-    protected int pca;
-    protected boolean pcaUse;
 
 
 
     /**
-     * Methode berechnet von allen Features die Standardisierung
-     * @param patterns Train-Patterns
-     * @return standardisierte Train-Patterns
+     * Method calculates the standardization of the features
+     * @param patterns Feature-set
+     * @return Standardised feature-set
      */
     public double[][] standardization(double[][] patterns) {
         double samples = (double)patterns.length;
@@ -54,12 +67,10 @@ public class DecisionTree {
     }
 
     /**
-     * Methode berechnet die Kovarianzmatrix
-     * @param patterns Train-Patterns
-     * @return Kovarianzmatrix
+     * Method calculates the normalisation of the features
+     * @param patterns Feature-set
+     * @return Normalised feature-set
      */
-
-
     public double[][] normalisation(double[][] patterns) {
         double[][] newPatterns = new double[patterns.length][patterns[0].length];
         double max, min;
@@ -81,18 +92,11 @@ public class DecisionTree {
         return newPatterns;
     }
 
-    protected void searchUsedLabels(double[] labels) {
-        for(int i = 0; i < labels.length; i++) {
-            if(!(usedLabels.contains(labels[i]))) {
-                usedLabels.add(labels[i]);
-            }
-        }
-    }
 
     /**
-     * Methode berechnet die quantifizierten Grenzwerte
-     * @param data Train-Daten (Patterns + Labels)
-     * @return quantifizierten Grenzwerte der einzelnen Features
+     * Method calculates the quantifies Values for each feature.
+     * @param data feature-set with labels
+     * @return Quantified values for each feature
      */
     protected double[][] computeQuantifyValues(double[][] data) {
         double [][] quantifyValues = new double[data.length-1][quantifySize +1];
@@ -125,9 +129,9 @@ public class DecisionTree {
     }
 
     /**
-     * Methode berechnet die Klassenverteilung
-     * @param data Train-Daten (Patterns + Labels)
-     * @return Verteilung der einzelnen Labels
+     * Method calculates the label distribution.
+     * @param data Feature-set with labels
+     * @return Label distribution
      */
     protected int[] computeClassDistribution(double[][] data) {
         int numberOfLabels = data[0].length;
@@ -140,9 +144,9 @@ public class DecisionTree {
     }
 
     /**
-     * Methode berechnet die Klassenverteilung
-     * @param labels Train-Labels
-     * @return Verteilung der einzelnen Labels
+     * Method calculates the label distribution.
+     * @param labels Label-set
+     * @return Label distribution
      */
     protected int[] computeClassDistribution(double[] labels) {
         int numberOfLabels = labels.length;
@@ -154,11 +158,12 @@ public class DecisionTree {
         return distribution;
     }
 
+
     /**
-     * Methode fuegt Patterns und Labels zusammen
-     * @param patterns Train-Patterns
-     * @param labels Train-Labels
-     * @return Train-Daten (Patterns + Labels)
+     * Method merges the feature-set and label-set
+     * @param patterns Feature-set
+     * @param labels Label-set
+     * @return feature-set with labels
      */
     protected double[][] merger(double[][] patterns, double[] labels) {
         if (patterns.length != labels.length) {
@@ -179,10 +184,10 @@ public class DecisionTree {
     }
 
     /**
-     * Methode sortiert die Daten nach nach einem ausgewaehlten Feature aufsteigend
-     * @param data Train-Daten (Patterns + Labels)
-     * @param featureNumber Ausgewaehltes Feature
-     * @return sortierte Train-Daten (Patterns + Labels)
+     * Mothod sorts the data-set by a selected label.
+     * @param data Feature-set with labels
+     * @param featureNumber selected feature
+     * @return Sorted Feature-set with labels
      */
     protected double[][] sort(double[][] data, final int featureNumber) {
         double[][] transpose = transpose(data);
@@ -198,10 +203,11 @@ public class DecisionTree {
         return data;
     }
 
+
     /**
-     * Methode transponiert die Daten (Matrix-Transposition)
-     * @param data Train-Daten (Patterns + Labels)
-     * @return transponierte Train-Daten (Patterns + Labels)
+     * Method transpose a given matrix
+     * @param data 2d-matrix (feature-set with labels)
+     * @return Transposed matrix
      */
     protected double[][] transpose(double[][] data) {
         double[][] transpose = new double[data[0].length][data.length];
@@ -214,11 +220,10 @@ public class DecisionTree {
         return transpose;
     }
 
-
     /**
-     * Methode berechnet die Entropie
-     * @param labels Labels/Sublabels auf den die Entropy berechnet werden soll
-     * @return gibt den Entropywert zurueck
+     * Method calculates the entropy
+     * @param labels Label-set
+     * @return Calculated entropy
      */
     protected double computeEntropy(double[] labels) {
         int numberOfLabels = labels.length;
@@ -240,9 +245,9 @@ public class DecisionTree {
     }
 
     /**
-     * Methode sucht das maximale Label
-     * @param labels Train-Labels
-     * @return maximale Label
+     * Method searches the maximal label
+     * @param labels Label-set
+     * @return Maximal label
      */
     protected int computeMaxLabel(double[] labels) {
         int maxLabel = 0;
@@ -256,9 +261,9 @@ public class DecisionTree {
     }
 
     /**
-     * Methode sucht das staerkste Label heraus
-     * @param labels Train-Labels
-     * @return staerkste Label
+     * Method searches the strongest label
+     * @param labels Label-set
+     * @return strongest label
      */
     protected int computeStrongestLabel (double [] labels) {
         int numberOfLabels = labels.length;
@@ -286,6 +291,14 @@ public class DecisionTree {
      * @param upperBound obere Grenze
      * @return Anzahl der Samples, die die Bedingung erfuellen
      */
+
+    /**
+     * Method counts the samples between two bounds
+     * @param selectedFeature Selected Feature
+     * @param lowerBound Lower bound
+     * @param upperBound Upper bound
+     * @return Number of count
+     */
     protected int countHitValue(double [] selectedFeature, double lowerBound, double upperBound) {
         int count = 0;
         for (int i = 0; i < selectedFeature.length; i++) {
@@ -297,9 +310,9 @@ public class DecisionTree {
     }
 
     /**
-     * Methode ueberprueft, ob ein Konten pure ist
-     * @param labels Train-Label eines Knotens
-     * @return true, wenn der Knoten pure ist, andernfalls false
+     * Method checks purity of a node
+     * @param labels Label-set
+     * @return True if a node is pure, else false
      */
     protected boolean isNodePure(double[] labels) {
         for (int i = 0; i < labels.length; i++) {
