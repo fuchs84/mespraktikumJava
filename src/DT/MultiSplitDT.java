@@ -10,13 +10,23 @@ import java.util.ArrayList;
  */
 public class MultiSplitDT extends DecisionTree {
 
+    //Root node
     private MultiSplitNode root;
 
+    //default split bounds for standardised features
     private double[] values = {Double.NEGATIVE_INFINITY, -3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0, Double.POSITIVE_INFINITY};
+
+    //counter for data saving
     private int count;
 
-
-
+    /**
+     * Method trains the classifier
+     * @param patterns feature-set
+     * @param labels label-set
+     * @param maxDeep maximal depth
+     * @param minNodeSize minimal numbers of instances in a Node;
+     * @param quantifySize number of split parts for decision rules
+     */
     public void train (double[][] patterns, double[] labels, int maxDeep, int minNodeSize, int quantifySize) {
         this.quantifySize = quantifySize;
         this.deep = maxDeep;
@@ -24,11 +34,14 @@ public class MultiSplitDT extends DecisionTree {
         double[][] merge;
         double[][] data;
 
+        //calculates the standardised features
         patterns = standardization(patterns);
 
+        //merge label-set and feature set to data and afterwards transpose the data
         merge = merger(patterns, labels);
         data = transpose(merge);
 
+        //calculates the split bounds
         if(quantifySize >= 3) {
             values = new double[quantifySize + 1];
             for (int i = 0; i <= quantifySize; i++) {
@@ -49,34 +62,31 @@ public class MultiSplitDT extends DecisionTree {
         }
 
         numberOfInstances = labels.length;
+
+        //the strongest label is the default label
         defaultLabel = computeStrongestLabel(labels);
+
+        //label distribution of the complete label-set
         entireDistribution = computeClassDistribution(labels);
+
+        //builds the tree
         root = build(data, null, 0);
     }
 
     /**
-     * Methode baut entweder einen neuen Knoten oder ein Blatt
-     * @param data Train-Daten (Patterns + Labels)
-     * @param parent Elternknoten
-     * @param deep Tiefe des Baums
-     * @return Knoten oder Blatt
+     * Method builds recursive the decision tree
+     * @param data Label + feature-set
+     * @param parent parent node
+     * @param deep current depth of the tree
+     * @return node or leaf
      */
     public MultiSplitNode build (double[][] data, MultiSplitNode parent, int deep) {
+        // new node
         MultiSplitNode node = new MultiSplitNode();
         node.parent = parent;
         node.deep = deep;
-//        if(data[0].length == 0) {
-//            node.setLeaf(true);
-//            int label = defaultLabel;
-//            for(int i = 0; i < entireDistribution.length; i++) {
-//                if((double) entireDistribution[i]/(double) numberOfInstances > Math.random() && i != defaultLabel) {
-//                    label = i;
-//                }
-//            }
-//            node.setClassLabel((double) label);
-//            return node;
-//        }
-//        else
+
+        // builds leaf if maximal depth or minimal number of instances in a node
         if(this.deep <= deep || minNodeSize > data[0].length) {
             int[] distribution = computeClassDistribution(data);
             int maxDistribution = Integer.MIN_VALUE;
@@ -93,17 +103,23 @@ public class MultiSplitDT extends DecisionTree {
             node.children = null;
             return node;
         }
+
+        // builds leaf if the instances of a node are pure
         else if(isNodePure(data[data.length-1])) {
             node.setLeaf(true);
             node.setClassLabel(data[data.length - 1][0]);
             node.children = null;
             return node;
         }
+
+        // builds node with decision rule
         else {
             node.setLeaf(false);
             double maxIG = Double.NEGATIVE_INFINITY;
             int maxIGFeature = Integer.MIN_VALUE;
             double informationGain;
+
+            // compares calculated information gain (IG) for each feature and selects the feature with maximal IG
             for(int i = 0; i < data.length -1; i++) {
                 informationGain = computeInformationGain(data, i);
                 if(informationGain > maxIG /*&& !usedFeature.contains(i)*/) {
@@ -111,14 +127,17 @@ public class MultiSplitDT extends DecisionTree {
                     maxIGFeature = i;
                 }
             }
+
+            // saves the used features
             usedFeature.add(maxIGFeature);
 
 
             node.setDecisionAttribute(maxIGFeature);
 
-
+            // splits the data dependent on the max IG feature for the new nodes
             double[][][] newData = splitData(data, maxIGFeature);
 
+            // search after the data-splits without instances
             int[] distribution = new int[quantifySize];
             int index = 0;
             for(int i = 0; i < quantifySize; i++) {
@@ -128,12 +147,12 @@ public class MultiSplitDT extends DecisionTree {
                 }
             }
 
-
+            // new nodes for the data-splits
             node.children = new MultiSplitNode[index];
 
+            // calculates the decision values for the node (if data-split zero than ignore)
             double[] newValues = new double[index+1];
             newValues[0] = Double.NEGATIVE_INFINITY;
-
             index = 1;
             for(int i = 0; i < quantifySize; i++) {
                 if (distribution[i] == 0) {
@@ -152,6 +171,8 @@ public class MultiSplitDT extends DecisionTree {
             node.setDecisionValues(newValues);
 
             deep++;
+
+            // builds the children nodes
             index = 0;
             for (int i = 0; i < quantifySize; i++) {
                 if(newData[i][0].length > 0) {
@@ -163,25 +184,31 @@ public class MultiSplitDT extends DecisionTree {
         }
     }
 
+
     /**
-     * Methode teilt die Daten nach ein ausgewaehltes Feature auf
-     * @param data Train-Daten (Patterns + Labels)
-     * @param featureNumber ausgewaehltes Feature
-     * @return Array aus Train-Daten (Patterns + Labels)
+     * Method splits the data dependent on a selected feature in bins
+     * @param data label + feature-set
+     * @param featureNumber selected feature
+     * @return array with data-sets
      */
     private double[][][] splitData(double[][] data, int featureNumber) {
+
+        //sorts the data dependent on a selected feature
         double[][] dataSort = sort(data, featureNumber);
+
         double[][][] splitData = new double[quantifySize][][];
         int[] distribution = new int[quantifySize];
         double upperBound, lowerBound;
 
-
+        //count the instances for each bin
         for (int i = 0; i < quantifySize; i++) {
             lowerBound = values[i];
             upperBound = values[i+1];
             distribution[i] = countHitValue(data[featureNumber], lowerBound, upperBound);
         }
         int offset = 0;
+
+        //splits the data
         for (int i = 0; i < quantifySize; i++) {
             splitData[i] = new double[data.length][distribution[i]];
             for (int j = 0; j < data.length; j++) {
@@ -196,10 +223,10 @@ public class MultiSplitDT extends DecisionTree {
     }
 
     /**
-     * Methode berechnet den Information-Gain eines ausgewaehlten Features
-     * @param data Train-Daten (Patterns + Labels)
-     * @param featureNumber ausgewaehltes Feature
-     * @return Information-Gain
+     * Method calculates the information gain for a selected feature
+     * @param data label + feature-set
+     * @param featureNumber selected feature
+     * @return information gain
      */
     private double computeInformationGain(double[][] data, int featureNumber) {
         double[] labels = data[data.length-1];
@@ -207,6 +234,8 @@ public class MultiSplitDT extends DecisionTree {
         double probability;
         double gain;
         subLabels = computeSubLabels(data, featureNumber);
+
+        //calculates entropy and afterwards subtracts the probability multiplied with the entropy of the sub-labels
         gain = computeEntropy(labels);
         for (int j = 0; j < quantifySize; j++) {
             probability = ((double)subLabels[j].length)/((double)labels.length);
@@ -217,10 +246,10 @@ public class MultiSplitDT extends DecisionTree {
     }
 
     /**
-     * Methode berechnet die Sublabels eines ausgewaehlten Features
-     * @param data Train-Daten (Patterns + Labels)
-     * @param featureNumber ausgewaehltes Feature
-     * @return Sublabels
+     * Method calculates the sub-labels for calculating information gain
+     * @param data label + feature-set
+     * @param featureNumber selected feature
+     * @return sub-labels
      */
     private double[][] computeSubLabels(double[][] data, int featureNumber) {
         double[][] sortData = sort(data, featureNumber);
@@ -240,12 +269,10 @@ public class MultiSplitDT extends DecisionTree {
         return subLabels;
     }
 
-
-
     /**
-     * Methode klassifiziert die uebergebenen Patterns
-     * @param patterns Patterns die klassifiziert Werden
-     * @return double-Array mit den jeweiligen Labels
+     * Method classifies a feature-set
+     * @param patterns feature-set
+     * @return classified labels
      */
     public double[] classify(double[][] patterns) {
         patterns = standardization(patterns);
@@ -257,10 +284,11 @@ public class MultiSplitDT extends DecisionTree {
         return labels;
     }
 
+
     /**
-     * Methode geht durch den Baum durch und liefert die jeweilige Klasse zurueck wenn es auf ein Blatt trifft
-     * @param pattern klassifizierendes Pattern
-     * @return klassifiziertes Label
+     * Method passes  a given instance of a feature-set throw the tree and returns the label of the leaf
+     * @param pattern instance of the feature-set
+     * @return classified label
      */
     private double passTree(double[] pattern) {
         MultiSplitNode node = root;
@@ -284,6 +312,10 @@ public class MultiSplitDT extends DecisionTree {
         return classified;
     }
 
+    /**
+     * Method saves the tree
+     * @param path storage path
+     */
     public void saveData(String path) {
         try {
             FileWriter fw = new FileWriter(path);
@@ -294,6 +326,11 @@ public class MultiSplitDT extends DecisionTree {
         }
     }
 
+    /**
+     * Method saves the nodes by passing the tree recursively
+     * @param node saved node
+     * @param fw FileWriter for saving
+     */
     private void save(MultiSplitNode node, FileWriter fw) {
         try {
             if(node.getLeaf() == false) {
@@ -325,6 +362,10 @@ public class MultiSplitDT extends DecisionTree {
         }
     }
 
+    /**
+     * Method loads a saved tree
+     * @param path storage path
+     */
     public void loadData(String path) {
         try {
             BufferedReader br = new BufferedReader(new FileReader(path));
@@ -344,6 +385,12 @@ public class MultiSplitDT extends DecisionTree {
         }
     }
 
+    /**
+     * Method builds a decision tree with saved values recursively
+     * @param parent parent node
+     * @param data data of the node
+     * @return built node
+     */
     private MultiSplitNode buildWithLoadedData(MultiSplitNode parent, ArrayList<String> data) {
 
         count++;
