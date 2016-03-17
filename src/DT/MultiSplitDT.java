@@ -261,6 +261,7 @@ public class MultiSplitDT extends DecisionTree {
             upperBound = values[i+1];
             count = countHitValue(data[featureNumber],lowerBound, upperBound);
             subLabels[i] = new double[count];
+            //allocates instances in bins
             for (int j = 0; j < subLabels[i].length; j++) {
                 subLabels[i][j] = sortData[sortData.length-1][j+offset];
             }
@@ -275,9 +276,13 @@ public class MultiSplitDT extends DecisionTree {
      * @return classified labels
      */
     public double[] classify(double[][] patterns) {
+
+        // calculates the standardised features
         patterns = standardization(patterns);
 
         double[] labels = new double[patterns.length];
+
+        // passes each instance throw the tree
         for (int i = 0; i < patterns.length; i++) {
             labels[i] = passTree(patterns[i]);
         }
@@ -296,13 +301,14 @@ public class MultiSplitDT extends DecisionTree {
 
         int feature;
         double[] values;
-
+        // passes the tree, while node is not a leaf
         while (node.getLeaf() == false) {
             feature = node.getDecisionAttribute();
             values = node.getDecisionValues();
             for (int i = 0; i < values.length-1; i++) {
                 lowerBound = values[i];
                 upperBound = values[i + 1];
+                //search the right child node
                 if (lowerBound <= pattern[feature] && pattern[feature] < upperBound) {
                     node = node.children[i];
                 }
@@ -333,6 +339,7 @@ public class MultiSplitDT extends DecisionTree {
      */
     private void save(MultiSplitNode node, FileWriter fw) {
         try {
+            //if node not a leaf, than save the nodes values
             if(node.getLeaf() == false) {
                 fw.append(Boolean.toString(false));
                 fw.append(",");
@@ -349,6 +356,7 @@ public class MultiSplitDT extends DecisionTree {
                     save(node.children[i], fw);
                 }
             }
+            //if node a leaf, than save the leaf values
             else {
                 fw.append(Boolean.toString(true));
                 fw.append(",");
@@ -371,6 +379,7 @@ public class MultiSplitDT extends DecisionTree {
             BufferedReader br = new BufferedReader(new FileReader(path));
             ArrayList<String> data = new ArrayList<>();
             String line;
+            //read all lines in the file
             while ((line = br.readLine()) != null) {
                 data.add(line);
             }
@@ -397,6 +406,7 @@ public class MultiSplitDT extends DecisionTree {
         MultiSplitNode node = new MultiSplitNode();
         node.parent = parent;
         String[] parts = data.get(count).split(",");
+        //if node is not a leaf, than load the node values
         if(parts[0].equals("false")) {
             node.setLeaf(false);
             node.setDecisionAttribute(Integer.parseInt(parts[1]));
@@ -410,7 +420,9 @@ public class MultiSplitDT extends DecisionTree {
             for(int i = 0; i < node.children.length; i++) {
                 node.children[i] = buildWithLoadedData(node, data);
             }
-        } else {
+        }
+        //if node a leaf, than load the leaf values
+        else {
             node.setLeaf(true);
             node.setClassLabel(Double.parseDouble(parts[1]));
             node.children = null;

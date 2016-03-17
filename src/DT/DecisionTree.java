@@ -49,15 +49,21 @@ public class DecisionTree {
         for (int i = 0; i < patterns[0].length; i++) {
             median = 0;
             standardDeviation = 0;
+            // sum up the feature values for each feature
             for (int j = 0; j < patterns.length; j++) {
                 median += patterns[j][i];
             }
+            // calculates the median
             median= median/samples;
+
+
+            // calculates the standard deviation for the standardisation
             for (int j = 0; j < patterns.length; j++) {
                 standardDeviation += Math.pow(patterns[j][i]-median, 2);
             }
             standardDeviation = Math.sqrt(standardDeviation/samples);
 
+            // calculates the standardisation
             for(int j = 0; j < patterns.length; j++) {
                 patterns[j][i] = (patterns[j][i] - median)/standardDeviation;
             }
@@ -74,6 +80,8 @@ public class DecisionTree {
     public double[][] normalisation(double[][] patterns) {
         double[][] newPatterns = new double[patterns.length][patterns[0].length];
         double max, min;
+
+        // search the minimum and maximum in each feature
         for(int i = 0; i < patterns[0].length; i++) {
             max = Double.NEGATIVE_INFINITY;
             min = Double.POSITIVE_INFINITY;
@@ -85,6 +93,7 @@ public class DecisionTree {
                     min = patterns[j][i];
                 }
             }
+            //calculates the normalisation for each feature
             for(int j = 0; j < patterns.length; j++) {
                 newPatterns[j][i] = (patterns[j][i]-min)/(max-min);
             }
@@ -101,6 +110,8 @@ public class DecisionTree {
     protected double[][] computeQuantifyValues(double[][] data) {
         double [][] quantifyValues = new double[data.length-1][quantifySize +1];
         double max, min, quantify;
+
+        // search the minimum and maximum of each feature
         for(int i = 0; i < data.length-1; i++) {
             min = Double.POSITIVE_INFINITY;
             max = Double.NEGATIVE_INFINITY;
@@ -112,6 +123,8 @@ public class DecisionTree {
                     min = data[i][j];
                 }
             }
+
+            // calculates the quantifies values (bound values) for each feature
             quantify = (max - min)/((double) quantifySize);
             for(int j = 0; j < quantifySize +1; j++) {
                 if(j == 0) {
@@ -135,8 +148,12 @@ public class DecisionTree {
      */
     protected int[] computeClassDistribution(double[][] data) {
         int numberOfLabels = data[0].length;
+
+        // search the maximal Label
         int maxLabel = computeMaxLabel(data[data.length-1]);
         int [] distribution = new int[maxLabel+1];
+
+        // calculates the distribution of the labels
         for (int i = 0; i < numberOfLabels; i++) {
             distribution[(int)data[data.length-1][i]]++;
         }
@@ -150,8 +167,12 @@ public class DecisionTree {
      */
     protected int[] computeClassDistribution(double[] labels) {
         int numberOfLabels = labels.length;
+
+        // search the maximal Label
         int maxLabel = computeMaxLabel(labels);
         int [] distribution = new int[maxLabel+1];
+
+        // calculates the distribution of the labels
         for (int i = 0; i < numberOfLabels; i++) {
             distribution[(int)labels[i]]++;
         }
@@ -172,6 +193,7 @@ public class DecisionTree {
         }
         double[][] merge = new double[patterns.length][patterns[0].length + 1];
         for (int i = 0; i < merge.length; i++) {
+            //merges each label instance to the end of the feature instance
             for (int j = 0; j < merge[0].length; j++) {
                 if(j == merge[0].length-1) {
                     merge[i][j] = labels[i];
@@ -190,7 +212,10 @@ public class DecisionTree {
      * @return Sorted Feature-set with labels
      */
     protected double[][] sort(double[][] data, final int featureNumber) {
+        //transposes the data-set for sorting
         double[][] transpose = transpose(data);
+
+        //sorts the data-set
         Arrays.sort(transpose, new Comparator<double[]>() {
             @Override
             public int compare(double[] double1, double[] double2) {
@@ -215,7 +240,6 @@ public class DecisionTree {
             for (int j = 0; j < transpose[0].length; j++) {
                 transpose[i][j] = data[j][i];
             }
-
         }
         return transpose;
     }
@@ -228,15 +252,15 @@ public class DecisionTree {
     protected double computeEntropy(double[] labels) {
         int numberOfLabels = labels.length;
         int maxLabel = computeMaxLabel(labels);
-        int[] distribution = computeClassDistribution(labels);
 
+        //calculates the distribution of the label-set
+        int[] distribution = computeClassDistribution(labels);
 
         double entropy = 0.0;
         double probability;
         for (int i = 0; i <= maxLabel; i++) {
-
+            //calculates the entropy of the label-set
             if (distribution[i] != 0) {
-
                 probability = ((double)distribution[i])/((double)numberOfLabels);
                 entropy += -(probability) * (Math.log(probability) / Math.log(2.0));
             }
@@ -252,6 +276,8 @@ public class DecisionTree {
     protected int computeMaxLabel(double[] labels) {
         int maxLabel = 0;
         int numberOfLabels = labels.length;
+
+        //searches the maximal label by comparing each label with the current maximal label
         for (int i = 0; i < numberOfLabels; i++) {
             if (maxLabel < (int) labels[i]) {
                 maxLabel = (int) (labels[i]);
@@ -275,6 +301,8 @@ public class DecisionTree {
         for (int i = 0; i < numberOfLabels; i++) {
             distribution[(int)labels[i]]++;
         }
+
+        //searches the strongest label by comparing with the label-distributions
         for (int i = 0; i < distribution.length; i++) {
             if(distribution[i] > numberOfStrongestLabel) {
                 numberOfStrongestLabel = distribution[i];
@@ -283,14 +311,6 @@ public class DecisionTree {
         }
         return strongestLabel;
     }
-
-    /**
-     * Methode zaehlt die Sampels zwischen zwei Grenzen, die den Wert erfuellen
-     * @param selectedFeature ausgewaeltes Feature
-     * @param lowerBound untere Grenze
-     * @param upperBound obere Grenze
-     * @return Anzahl der Samples, die die Bedingung erfuellen
-     */
 
     /**
      * Method counts the samples between two bounds
@@ -302,6 +322,7 @@ public class DecisionTree {
     protected int countHitValue(double [] selectedFeature, double lowerBound, double upperBound) {
         int count = 0;
         for (int i = 0; i < selectedFeature.length; i++) {
+            //counts if the feature value in the bounds
             if (lowerBound <= selectedFeature[i] && selectedFeature[i] < upperBound) {
                 count++;
             }
@@ -310,7 +331,7 @@ public class DecisionTree {
     }
 
     /**
-     * Method checks purity of a node
+     * Method checks the purity of a node
      * @param labels Label-set
      * @return True if a node is pure, else false
      */
