@@ -1,22 +1,22 @@
 package DT;
 
 /**
- * Created by MatthiasFuchs on 13.11.15.
+ * Multi-split node
  */
 public class MultiSplitNode extends DT.Node implements java.io.Serializable {
 
     /**
-     * Attribute des Kontens
+     * nodes attributes
      */
     private double[] decisionValues;
 
     /**
-     * Verknuepfungen der Knoten untereinander
+     * children nodes
      */
     public MultiSplitNode[] children;
 
     /**
-     * Getter- und Setter-Methoden des Knotens
+     * Getter- and setter-methods of the nodes
      */
     public double[] getDecisionValues() {
         return decisionValues;

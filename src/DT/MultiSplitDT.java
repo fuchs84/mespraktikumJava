@@ -6,7 +6,7 @@ import java.io.*;
 import java.util.ArrayList;
 
 /**
- * Created by MatthiasFuchs on 29.11.15.
+ * Multi-split decision Tree
  */
 public class MultiSplitDT extends DecisionTree {
 

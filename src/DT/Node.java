@@ -1,7 +1,7 @@
 package DT;
 
 /**
- * Generally class for the nodes
+ * Generally node
  */
 public class Node {
 

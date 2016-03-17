@@ -7,7 +7,7 @@ import java.io.*;
 import java.util.*;
 
 /**
- * Generally class for the decision tree
+ * Generally decision tree
  */
 public class DecisionTree {
 
