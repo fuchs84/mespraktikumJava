@@ -2,23 +2,23 @@ package DT;
 
 
 /**
- * Created by MatthiasFuchs on 13.11.15.
+ * Binary-split node
  */
 public class BinarySplitNode extends Node {
 
     /**
-     * Attribute des Knotens
+     * nodes attributes
      */
     private double decisionValueBound;
 
     /**
-     * Verknuepfungen der Knoten untereinander
+     * children nodes
      */
     public BinarySplitNode left;
     public BinarySplitNode right;
 
     /**
-     * Getter- und Setter-Methoden des Knotens
+     * Getter- and setter-methods of the nodes
      */
     public double getDecisionValueBound() {
         return decisionValueBound;

@@ -64,14 +64,17 @@ public class MLP {
         initLayers();
         initWeights();
 
+        // calculates the normalised feature-set
         patterns = normalisation(patterns);
-        double[][] extendedLabels = extendedLabels(labels);
 
+        double[][] extendedLabels = extendedLabels(labels);
 
         calculateDistribution(extendedLabels);
         double previousEntireError = Double.POSITIVE_INFINITY;
         int index = 0;
         if (patterns.length == extendedLabels.length) {
+
+            // trains the network while the entire error decreases.
             do {
                 if (index > 0) {
                     previousEntireError = entireError;
@@ -116,11 +119,17 @@ public class MLP {
     private void initWeights(){
         for (int i = 0; i <= numberOfHiddenlayers; i++) {
             double[][] weightMatrix;
+
+            // input weights
             if(i== 0) {
                 weightMatrix = new double[nInput+1][nHidden[i]+1];
-            } else if (i == numberOfHiddenlayers) {
+            }
+            // output weights
+            else if (i == numberOfHiddenlayers) {
                 weightMatrix = new double[nHidden[i-1]+1][nOutput];
-            } else {
+            }
+            // hidden weights
+            else {
                 weightMatrix = new double[nHidden[i-1]+1][nHidden[i]+1];
             }
             for (int j = 0; j < weightMatrix.length; j++) {
@@ -191,6 +200,7 @@ public class MLP {
     protected int computeMaxLabel(double[] labels) {
         int maxLabel = 0;
         int numberOfLabels = labels.length;
+
         for (int i = 0; i < numberOfLabels; i++) {
             if (maxLabel < (int) labels[i]) {
                 maxLabel = (int) (labels[i]);
@@ -200,7 +210,7 @@ public class MLP {
     }
 
     /**
-     * Method extends the labels for the output layer. Each label has his own output perceptron.
+     * Method extends the labels for the output layer. Each label has a own output perceptron.
      * @param labels label-set
      * @return extend label-set
      */
@@ -208,6 +218,7 @@ public class MLP {
         int length = computeMaxLabel(labels), value;
         double[][] extendedLabels = new double[labels.length][length];
 
+        // each label value gets a own output perceptron
         for (int i = 0; i < labels.length; i ++) {
             value = (int) labels[i];
             extendedLabels[i][value-1] = 1.0;
@@ -223,6 +234,8 @@ public class MLP {
     private double[][] normalisation(double[][] patterns) {
         double[][] newPatterns = new double[patterns.length][patterns[0].length];
         double max, min;
+
+        // search after minimal and maximal value of each feature
         for(int i = 0; i < patterns[0].length; i++) {
             max = Double.NEGATIVE_INFINITY;
             min = Double.POSITIVE_INFINITY;
@@ -234,6 +247,7 @@ public class MLP {
                     min = patterns[j][i];
                 }
             }
+            // calculates the normalisation value
             for(int j = 0; j < patterns.length; j++) {
                 newPatterns[j][i] = (patterns[j][i]-min)/(max-min);
             }
@@ -250,7 +264,7 @@ public class MLP {
         patterns = normalisation(patterns);
         double [] labels = new double[patterns.length];
 
-
+        //passes the individual feature instances throw the network
         for(int i = 0; i < patterns.length; i++) {
             double[] output = passNetwork(patterns[i]);
             labels [i] = (double) winner(output);
@@ -267,6 +281,8 @@ public class MLP {
     private int winner(double[] classified) {
         double max = Double.NEGATIVE_INFINITY;
         int index = 0;
+
+        // search after the output layer with the highest activation
         for(int i = 0; i < classified.length; i++) {
             if (classified[i] > max) {
                 max = classified[i];
@@ -292,6 +308,7 @@ public class MLP {
         double[][] weightMatrix = weights.get(0);
         double[] targetLayer = layers.get(0);
 
+        // passes the feature instance throw the input layer
         targetLayer[0] = 1.0;
         for (int i=1; i<targetLayer.length; i++) {
             targetLayer[i] = 0.0;
@@ -302,6 +319,7 @@ public class MLP {
         }
         layers.set(0, targetLayer);
 
+        // passes the feature instance throw the hidden layers
         for (int h=1; h < numberOfHiddenlayers; h++) {
             startLayer = layers.get(h - 1);
             weightMatrix = weights.get(h);
@@ -321,6 +339,8 @@ public class MLP {
         startLayer = layers.get(numberOfHiddenlayers -1);
         weightMatrix = weights.get(numberOfHiddenlayers);
         targetLayer = output;
+
+        // passes the feature instance throw the output layer
         for (int i=0; i<targetLayer.length; i++) {
             targetLayer[i] = 0.0;
             for(int j=0; j<startLayer.length; j++) {
@@ -380,12 +400,14 @@ public class MLP {
 
         double distributionFactor = 0.0;
 
+        // distribution factor influences the learning rate (higher probability of a label = lower rate)
         for(int i = 0; i < nOutput; i++) {
             if (desiredOutput[i] == 1.0) {
                 distributionFactor =1/(desiredOutputDistribution.get(i)*100.0);
             }
         }
 
+        // saves the errors of the layers
         List<double[]> errors = new LinkedList<double[]>();
         for(int i = 0; i <= numberOfHiddenlayers; i++) {
             double [] error;
@@ -405,14 +427,12 @@ public class MLP {
         double nCurrentLayer, nNextLayer;
         double errorSum = 0.0;
 
-
-
+        // calculates the error of the output layer
         error = errors.get(numberOfHiddenlayers);
         for (int j = 0; j < nOutput; j++) {
             error[j] = output[j] * (1.0-output[j]) * (desiredOutput[j] - output[j]);
         }
         errors.set(numberOfHiddenlayers, error);
-
 
         error = errors.get(numberOfHiddenlayers -1);
         nextError = errors.get(numberOfHiddenlayers);
@@ -431,6 +451,7 @@ public class MLP {
         errors.set(numberOfHiddenlayers -1, error);
 
 
+        // calculates the error of the hidden layers
         for (int i = numberOfHiddenlayers -1; i > 0; i--) {
             error = errors.get(i-1);
             nextError = errors.get(i);
@@ -452,6 +473,7 @@ public class MLP {
         layer = input;
         error = errors.get(0);
 
+        // calculates the new weights between input layer and first hidden layer
         for(int i = 0; i <= nInput; i++) {
             for(int j = 1; j <= nHidden[0]; j++) {
                 weight[i][j] = weight[i][j] + learningRate*error[j]*layer[i]*distributionFactor;
@@ -459,7 +481,7 @@ public class MLP {
         }
         weights.set(0, weight);
 
-
+        // calculates the new weights between the hidden layers
         for(int i = 0; i < numberOfHiddenlayers -1; i++) {
             weight = weights.get(i+1);
             error = errors.get(i+1);
@@ -476,6 +498,7 @@ public class MLP {
         layer = layers.get(numberOfHiddenlayers -1);
         error = errors.get(numberOfHiddenlayers);
 
+        // calculates the new weights between the last hidden layer and output layer
         for (int i = 0; i <= nHidden[numberOfHiddenlayers -1]; i++) {
             for (int j = 0; j < nOutput; j++) {
                 weight[i][j] = weight[i][j] + learningRate*error[j]*layer[i]*distributionFactor;
@@ -490,6 +513,8 @@ public class MLP {
      */
     public void saveData() {
         try {
+
+            // saves the number of perceptrons of the layers
             FileWriter fw = new FileWriter("mlp.csv");
             fw.append(Integer.toString(nInput));
             fw.append(",");
@@ -502,6 +527,8 @@ public class MLP {
             fw.append("\n");
 
             double[][] weight;
+
+            // saves the weight matrix
             for(int i = 0; i < weights.size(); i++) {
                 weight = weights.get(i);
                 for(int j = 0; j < weight.length; j++) {
@@ -528,6 +555,8 @@ public class MLP {
             BufferedReader br = new BufferedReader(new FileReader("mlp.csv"));
             ArrayList<String> data = new ArrayList<>();
             String line;
+
+            // reads all lines in the file
             while ((line = br.readLine()) != null) {
                 data.add(line);
             }
@@ -545,6 +574,8 @@ public class MLP {
      * @param data CSV-data
      */
     private void buildWithLoadedData(ArrayList<String> data) {
+
+        // sets the number of perceptrons of the layers
         String[] parts = data.get(0).split(",");
         nHidden = new int[parts.length-2];
         for(int i = 0; i < parts.length; i++) {
@@ -568,6 +599,8 @@ public class MLP {
         String[] parts;
         for (int i = 0; i <= numberOfHiddenlayers; i++) {
             double[][] weightMatrix;
+
+            // initials the weight matrix between input layer und fist hidden layer
             if(i== 0) {
                 weightMatrix = new double[nInput+1][nHidden[i]+1];
                 for (int j = 0; j < weightMatrix.length; j++) {
@@ -576,7 +609,10 @@ public class MLP {
                         weightMatrix[j][k] = Double.parseDouble(parts[k]);
                     }
                 }
-            } else if (i == numberOfHiddenlayers) {
+            }
+
+            // initials the weight matrix between last hidden layer and output layer
+            else if (i == numberOfHiddenlayers) {
                 weightMatrix = new double[nHidden[i-1]+1][nOutput];
                 for (int j = 0; j < weightMatrix.length; j++) {
                     parts = data.get(j + 2 + nInput + 2 + (i-1) * (nHidden[i-1] + 2)).split(",");
@@ -584,7 +620,10 @@ public class MLP {
                         weightMatrix[j][k] = Double.parseDouble(parts[k]);
                     }
                 }
-            } else {
+            }
+
+            // initials the weight matrix between the layers
+            else {
                 weightMatrix = new double[nHidden[i-1]+1][nHidden[i]+1];
                 for (int j = 0; j < weightMatrix.length; j++) {
                     parts = data.get(j + 2 + nInput + 2 + (i-1) * (nHidden[i-1] + 2)).split(",");

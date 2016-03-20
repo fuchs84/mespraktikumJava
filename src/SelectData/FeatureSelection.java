@@ -69,6 +69,8 @@ public class FeatureSelection {
         double samples = patterns.length;
         double[][] covariance = new double[patterns[0].length][patterns[0].length];
         double median;
+
+        // calculates the zero mean value of each feature
         for(int i = 0; i < patterns[0].length; i++) {
             median = 0;
             for(int j = 0; j < patterns.length; j++) {
@@ -79,6 +81,8 @@ public class FeatureSelection {
                 patterns[j][i] = patterns[j][i] - median;
             }
         }
+
+        // calculates the covariance of each feature
         for(int j = 0; j < patterns[0].length; j++) {
             for (int k = 0; k <= j; k++) {
                 for(int l = 0; l < patterns.length; l++) {

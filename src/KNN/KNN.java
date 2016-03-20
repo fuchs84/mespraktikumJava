@@ -58,6 +58,8 @@ public class KNN {
         double[][] dataPattern = trainPatterns;
         double[] label = trainLabels;
         double[] distance = new double[label.length];
+
+        //classifies with the euclidean distance
         if(distanceCalculation.equals("Euclidean")){
             for (int i = 0; i < label.length; i++){
                 double squaresum = 0;
@@ -66,7 +68,9 @@ public class KNN {
                 }
                 distance[i] = Math.sqrt(squaresum);
             }
-        }else if (distanceCalculation.equals("Manhattan")){
+        }
+        //classifies with the Manhattan distance
+        else if (distanceCalculation.equals("Manhattan")){
                 for (int i = 0; i < label.length; i++){
                     double squaresum = 0;
                     for (int j = 0; j < pattern.length; j++) {
