@@ -379,6 +379,7 @@ public class MultiSplitDT extends DecisionTree {
             BufferedReader br = new BufferedReader(new FileReader(path));
             ArrayList<String> data = new ArrayList<>();
             String line;
+
             //read all lines in the file
             while ((line = br.readLine()) != null) {
                 data.add(line);
